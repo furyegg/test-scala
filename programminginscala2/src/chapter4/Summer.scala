@@ -1,4 +1,4 @@
-// import ChecksumAccumulator.calculate
+// import
 
 object Summer {
 	def main(args: Array[String]): Unit = {
