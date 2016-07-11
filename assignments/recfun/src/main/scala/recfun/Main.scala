@@ -21,16 +21,6 @@ object Main {
   /**
    * Exercise 2
    */
-  def balance2(chars: List[Char]): Boolean = {
-    def check(head: Char, tail: List[Char], leftBracketCount: Int): Int = {
-      if (head == '(') check(tail.head, tail.tail, leftBracketCount + 1)
-      else if (head == ')') check(tail.head, tail.tail, leftBracketCount - 1)
-      else if (tail.isEmpty) leftBracketCount
-      else check(tail.head, tail.tail, leftBracketCount)
-    }
-    check(chars.head, chars.tail, 0) == 0
-  }
-
   def balance(chars: List[Char]): Boolean = {
     def check(chars: List[Char], leftBracketCount: Int): Int = {
       if (chars.isEmpty)
@@ -54,6 +44,8 @@ object Main {
   
   /**
    * Exercise 3
+   * http://algorithms.tutorialhorizon.com/dynamic-programming-coin-change-problem/
+   * http://www.algorithmist.com/index.php/Coin_Change
    */
   def countChange(money: Int, coins: List[Int]): Int = {
     if (money <= 0) 0
@@ -62,12 +54,13 @@ object Main {
 
     def iterateAllCoins(coins: List[Int], total: Int): Int = {
       if (coins.isEmpty) total
+      else {
+        val coinsCombination = getCoinsCombination(coins)
+        var n = 0
+        coinsCombination.foreach(coins => n += calAllCoins(coins))
 
-      val coinsCombination = getCoinsCombination(coins)
-      var n = 0
-      coinsCombination.foreach(coins => n += cal(coins))
-
-      iterateAllCoins(coins.tail, total + n)
+        iterateAllCoins(coins.tail, total + n)
+      }
     }
 
     def getCoinsCombination(coins: List[Int]): List[List[Int]] = {
@@ -79,33 +72,45 @@ object Main {
       getSubList(result, coins)
     }
 
-    def cal(coins: List[Int]): Int = {
-      var count = 0
+    def buildFactorsList(coinsCount: Int, maxPayCount: Int): List[Array[Int]] = {
+      var factorsList = List[Array[Int]]()
 
-      val minCoin = coins.reduceLeft((a, b) => a.min(b))
-      val maxPayCount = money / minCoin + 1
+      def buildFactors(factorsSize: Int, index: Int, value: Int): Array[Int] = {
+        val factors = Array.fill(factorsSize)(0)
+        factors(index) = value
+        factors
+      }
 
-      val coinsCount: Int = coins.size
-      for (i <- 0 to coinsCount) {
-        var sum = 0
-
-        for (a <- 0 to maxPayCount) {
-          val factors = Array[Int](coinsCount)
-
-          for (fIdx <- coinsCount to 0) {
-            factors(fIdx) = coinsCount - fIdx
-          }
-          sum += coins(i) * a
-
-          if (sum == money) return {
-            count += 1; count
-          }
-          if (sum > money) return {
-            count
-          }
+      for (c <- 0 to coinsCount - 1) {
+        for (n <- 0 to maxPayCount) {
+          val factors = buildFactors(coinsCount, c, n)
+          factorsList = factorsList :+ factors
         }
       }
+      factorsList
+    }
+
+    def calAllCoins(coins: List[Int]): Int = {
+      val minCoin = coins.reduceLeft((a, b) => a.min(b))
+      val maxPayCount = if (money % minCoin == 0) money / minCoin else money / minCoin + 1
+      val coinsCount: Int = coins.size
+      var count = 0
+      val factorsList = buildFactorsList(coinsCount, maxPayCount)
+      factorsList.foreach(factors => {
+        if (checkCoinsWithFactors(coins, factors)) count += 1
+      })
       count
+    }
+
+    def checkCoinsWithFactors(coins: List[Int], factors: Array[Int]): Boolean = {
+      var sum = 0
+      var result = false;
+      for (i <- 0 to factors.size - 1) {
+        sum += coins(i) * factors(i)
+        if (sum == money) result = true
+        if (sum > money) result = false
+      }
+      result
     }
 
     iterateAllCoins(coins, 0)
