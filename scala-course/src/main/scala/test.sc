@@ -1,11 +1,17 @@
-def getAllCoinsCombination(coins: List[Int]): List[List[Int]] = {
-  val result = List[List[Int]]()
-  def getSubList(result: List[List[Int]], coins: List[Int]): List[List[Int]] = {
-    if (coins.isEmpty) result
-    else getSubList(result :+ coins, coins.init)
-  }
-  getSubList(result, coins)
-}
+val coins = List(1,2)
+val maxPayCount = 4;
+val coinsCount = coins.size
 
-val list = List(1,2,3)
-getAllCoinsCombination(list)
+var factorsList = List[String]()
+for (n <- 0 to maxPayCount) {
+  for (m <- 0 to maxPayCount) {
+    val factors = List[Int]()
+    for (cIdx <- 0 to coinsCount - 1) {
+//      for (fIdx <- 0 to coinsCount - 1) {
+        cIdx :: factors
+//      }
+    }
+    println(factors.mkString(", "))
+  }
+}
+// println(factorsList.mkString("\n"))

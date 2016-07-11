@@ -80,19 +80,32 @@ object Main {
     }
 
     def cal(coins: List[Int]): Int = {
-      val factors = List[Int](coins.size)
-      var sum = 0
-//      while (sum > money) {
-//        if (sum == money) return sum
-//
-//        import scala.collection.mutable.Map
-//        val coinMap = Map[Int, Int]()
-//        for (i <- finalCoins.size) {
-//          coinMap += (finalCoins(i) -> factors(i))
-//        }
-//
-//      }
-      sum
+      var count = 0
+
+      val minCoin = coins.reduceLeft((a, b) => a.min(b))
+      val maxPayCount = money / minCoin + 1
+
+      val coinsCount: Int = coins.size
+      for (i <- 0 to coinsCount) {
+        var sum = 0
+
+        for (a <- 0 to maxPayCount) {
+          val factors = Array[Int](coinsCount)
+
+          for (fIdx <- coinsCount to 0) {
+            factors(fIdx) = coinsCount - fIdx
+          }
+          sum += coins(i) * a
+
+          if (sum == money) return {
+            count += 1; count
+          }
+          if (sum > money) return {
+            count
+          }
+        }
+      }
+      count
     }
 
     iterateAllCoins(coins, 0)
