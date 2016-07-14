@@ -15,4 +15,7 @@ def fixedPoint(f: Double => Double)(firstGuess: Double) = {
 def sqrt(x: Double): Double = fixedPoint(y => (y + x / y) / 2)(1)
 sqrt(2)
 
-def averageDamp(x: Double): Double =
+def averageDamp(x: Double): Double => Double = ???
+
+def sqrt2(x: Double): Double = fixedPoint(averageDamp(y => x / y))(1)
+sqrt2(2)
