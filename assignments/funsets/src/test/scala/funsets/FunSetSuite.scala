@@ -43,9 +43,9 @@ class FunSetSuite extends FunSuite {
    * Try it out! Change the values so that the assertion fails, and look at the
    * error message.
    */
-  // test("adding ints") {
-  //   assert(1 + 2 === 3)
-  // }
+//   test("adding ints") {
+//     assert(1 + 2 === 3)
+//   }
 
 
   import FunSets._
@@ -77,6 +77,7 @@ class FunSetSuite extends FunSuite {
     val s1 = singletonSet(1)
     val s2 = singletonSet(2)
     val s3 = singletonSet(3)
+    val s4 = (x: Int) => x >= -bound && x <= bound
   }
 
   /**
@@ -110,5 +111,37 @@ class FunSetSuite extends FunSuite {
     }
   }
 
+  test("forall test") {
+    new TestSets {
+      val s = union(s1, s2)
+      assert(!forall(s, x => x < 0), "all < 0")
+      assert(forall(s, x => x > 0), "all > 0")
+    }
+  }
+
+  test("exists test") {
+    new TestSets {
+      val s = union(s1, s2)
+      assert(!exists(s, x => x < 1), "has one < 1")
+      assert(exists(s, x => x > 1), "has one > 1")
+
+//      assert(!forall(s, x => x >= 1), "has one < 1")
+//      assert(forall(s, x => x <= 1), "has one > 1")
+    }
+  }
+
+  test("map test") {
+    new TestSets {
+      val s = union(s1, s2)
+
+      private val map1: Set = map(s, x => x + 1)
+      assert(contains(map1, 3), "map all element + 1")
+      assert(!contains(map1, 5), "map all element + 1")
+
+      private val map2: Set = map(s, x => x * 2)
+      assert(contains(map2, 4), "map all element * 2")
+      assert(!contains(map2, 6), "map all element * 2")
+    }
+  }
 
 }

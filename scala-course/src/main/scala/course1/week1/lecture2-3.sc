@@ -1,9 +1,9 @@
 import math.abs
 
 val tolerance = 0.0001
-def isCloseEnough(x: Double, y: Double) =
+def isCloseEnough(x: Double, y: Double): Boolean =
   abs((x - y) / x) / x < tolerance
-def fixedPoint(f: Double => Double)(firstGuess: Double) = {
+def fixedPoint(f: Double => Double)(firstGuess: Double): Double = {
   def iterate(guess: Double): Double = {
     println("guess = " + guess)
     val next = f(guess)
@@ -15,7 +15,7 @@ def fixedPoint(f: Double => Double)(firstGuess: Double) = {
 def sqrt(x: Double): Double = fixedPoint(y => (y + x / y) / 2)(1)
 sqrt(2)
 
-def averageDamp(x: Double): Double => Double = ???
+def averageDamp(f: Double => Double): Double => Double = (x) => (f(x) + x) / 2
 
 def sqrt2(x: Double): Double = fixedPoint(averageDamp(y => x / y))(1)
 sqrt2(2)

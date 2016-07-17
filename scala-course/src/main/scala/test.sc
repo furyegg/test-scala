@@ -1,40 +1,29 @@
-val money = 4
-val coins = List(1,2)
-def buildFactorsList(coinsCount: Int, maxPayCount: Int): List[Array[Int]] = {
-  var factorsList = List[Array[Int]]()
-  def buildFactors(factorsSize: Int, index: Int, value: Int): Array[Int] = {
-    val factors = Array.fill(factorsSize)(0)
-    factors(index) = value
-    factors
-  }
-  for (c <- 0 until coinsCount) {
-    for (n <- 0 to maxPayCount) {
-      val factors = buildFactors(coinsCount, c, n)
-      factorsList = factorsList :+ factors
-    }
-  }
-  factorsList
-}
-def calAllCoins(coins: List[Int]): Int = {
-  val minCoin = coins.reduceLeft((a, b) => a.min(b))
-  val maxPayCount = if (money % minCoin == 0) money / minCoin else money / minCoin + 1
-  val coinsCount = coins.size
-  var count = 0
-  val factorsList = buildFactorsList(coinsCount, maxPayCount)
-  factorsList.foreach(factors => println(factors.mkString(", ")))
-  factorsList.foreach(factors => {
-    if (checkCoinsWithFactors(coins, factors)) count += 1
-  })
-  count
-}
-def checkCoinsWithFactors(coins: List[Int], factors: Array[Int]): Boolean = {
-  var sum = 0
-  var result = false;
-  for (i <- 0 until factors.size) {
-    sum += coins(i) * factors(i)
-    if (sum == money) result = true
-    if (sum > money) result = false
-  }
-  result
-}
-calAllCoins(coins)
+type Set = Int => Boolean
+
+def contains(s: Set, elem: Int): Boolean = s(elem)
+
+def singletonSet(elem: Int): Set = x => elem == x
+
+val s1 = singletonSet(1)
+val s2 = singletonSet(2)
+val s3 = singletonSet(2)
+contains(s1, 1)
+contains(s1, 10)
+def union(s: Set, t: Set): Set = x => if (contains(s, x)) true else contains(t, x)
+val sUnion = union(s1, s2)
+contains(sUnion, 1)
+contains(sUnion, 2)
+contains(sUnion, 3)
+def intersect(s: Set, t: Set): Set = x => contains(s, x) && contains(t, x)
+val sInts = intersect(sUnion, s3)
+contains(sInts, 1)
+contains(sInts, 2)
+def diff(s: Set, t: Set): Set = x => contains(s, x) && !contains(t, x)
+val sDiff = diff(sUnion, s3)
+contains(sDiff, 1)
+contains(sDiff, 2)
+
+def filter(s: Set, p: Int => Boolean): Set = x => contains(s, x) && p(x)
+val sFlt = filter(sUnion, x => x > 1)
+contains(sFlt, 1)
+contains(sFlt, 2)
