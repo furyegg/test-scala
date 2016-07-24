@@ -76,7 +76,7 @@ abstract class TweetSet {
    * Question: Should we implment this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-  def descendingByRetweet: TweetList = ???
+  def descendingByRetweet: TweetList
   
   /**
    * The following methods are already implemented
@@ -113,6 +113,8 @@ class Empty extends TweetSet {
   
   def mostRetweeted: Tweet = null
   
+  def descendingByRetweet: TweetList = Nil
+  
   override def toString: String = "#"
   
   /**
@@ -140,24 +142,25 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
   
   def union(that: TweetSet): TweetSet = left.union(right).union(that).incl(elem)
   
-//  def mostRetweeted: Tweet = {
-//    val leftMost = left.mostRetweeted
-//    val rightMost = right.mostRetweeted
-//
-//    if (leftMost == null)
-//      if (rightMost == null) elem
-//      else if (rightMost.retweets > elem.retweets) rightMost
-//      else elem
-//    else if (leftMost.retweets > elem.retweets) leftMost
-//    else elem
-//  }
   def mostRetweeted: Tweet = {
     val leftMost = left.mostRetweeted
     val rightMost = right.mostRetweeted
-    
     if (leftMost == null && rightMost == null) elem
     else if (leftMost == null) if (rightMost.retweets > elem.retweets) rightMost else elem
     else if (leftMost.retweets > elem.retweets) leftMost else elem
+  }
+  
+  def descendingByRetweet: TweetList = {
+    def descendingSort(set: TweetSet, list: TweetList): TweetList = {
+      val most = set.mostRetweeted
+      if (most == null) list
+      else descendingSort(set.remove(most), new Cons(most, list))
+    }
+    def reverse(list: TweetList, revList: TweetList): TweetList = {
+      if (list.tail.isEmpty) revList
+      else reverse(list.tail, new Cons(list.head, revList))
+    }
+    reverse(descendingSort(this, Nil), Nil)
   }
   
   override def toString: String = "{" + left + elem + right + "}"
@@ -214,18 +217,27 @@ class Cons(val head: Tweet, val tail: TweetList) extends TweetList {
 object GoogleVsApple {
   val google = List("android", "Android", "galaxy", "Galaxy", "nexus", "Nexus")
   val apple = List("ios", "iOS", "iphone", "iPhone", "ipad", "iPad")
-
-  lazy val googleTweets: TweetSet = ???
-  lazy val appleTweets: TweetSet = ???
+  
+  val allTweets = TweetReader.allTweets
+  
+  def relatedTweet(t: Tweet, keys: List[String]): Boolean =
+    if (keys.tail.isEmpty) return false
+    else if (t.text.contains(keys.head)) true
+    else relatedTweet(t, keys.tail)
+  
+  lazy val googleTweets: TweetSet = allTweets.filter(relatedTweet(_, google))
+  lazy val appleTweets: TweetSet = allTweets.filter(relatedTweet(_, apple))
   
   /**
    * A list of all tweets mentioning a keyword from either apple or google,
    * sorted by the number of retweets.
    */
-  lazy val trending: TweetList = ???
+  lazy val trending: TweetList = googleTweets.union(appleTweets).descendingByRetweet
 }
 
 object Main extends App {
   // Print the trending tweets
-  GoogleVsApple.trending foreach println
+  // GoogleVsApple.trending foreach println
+  
+  GoogleVsApple.allTweets.foreach(println)
 }
