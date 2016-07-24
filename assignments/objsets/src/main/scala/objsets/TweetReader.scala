@@ -46,13 +46,13 @@ object TweetReader {
 
   val sites = List("gizmodo", "TechCrunch", "engadget", "amazondeals", "CNET", "gadgetlab", "mashable")
   
-  private val gizmodoTweets = TweetReader.ParseTweets.getTweetData("gizmodo", TweetData.gizmodo)
-  private val techCrunchTweets = TweetReader.ParseTweets.getTweetData("TechCrunch", TweetData.TechCrunch)
-  private val engadgetTweets = TweetReader.ParseTweets.getTweetData("engadget", TweetData.engadget)
-  private val amazondealsTweets = TweetReader.ParseTweets.getTweetData("amazondeals", TweetData.amazondeals)
-  private val cnetTweets = TweetReader.ParseTweets.getTweetData("CNET", TweetData.CNET)
-  private val gadgetlabTweets = TweetReader.ParseTweets.getTweetData("gadgetlab", TweetData.gadgetlab)
-  private val mashableTweets = TweetReader.ParseTweets.getTweetData("mashable", TweetData.mashable)
+  val gizmodoTweets = TweetReader.ParseTweets.getTweetData("gizmodo", TweetData.gizmodo)
+  val techCrunchTweets = TweetReader.ParseTweets.getTweetData("TechCrunch", TweetData.TechCrunch)
+  val engadgetTweets = TweetReader.ParseTweets.getTweetData("engadget", TweetData.engadget)
+  val amazondealsTweets = TweetReader.ParseTweets.getTweetData("amazondeals", TweetData.amazondeals)
+  val cnetTweets = TweetReader.ParseTweets.getTweetData("CNET", TweetData.CNET)
+  val gadgetlabTweets = TweetReader.ParseTweets.getTweetData("gadgetlab", TweetData.gadgetlab)
+  val mashableTweets = TweetReader.ParseTweets.getTweetData("mashable", TweetData.mashable)
   
   private val sources = List(gizmodoTweets, techCrunchTweets, engadgetTweets, amazondealsTweets, cnetTweets, gadgetlabTweets, mashableTweets)
 
@@ -63,7 +63,8 @@ object TweetReader {
                  (sites(3) -> amazondealsTweets),
                  (sites(4) -> cnetTweets),
                  (sites(5) -> gadgetlabTweets),
-                 (sites(6) -> mashableTweets))
+                 (sites(6) -> mashableTweets)
+    )
 
   val tweetSets: List[TweetSet] = sources.map(tweets => toTweetSet(tweets))
   

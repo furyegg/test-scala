@@ -2,6 +2,8 @@ package objsets
 
 import TweetReader._
 
+import scala.util.parsing.json.JSON
+
 /**
  * A class to represent tweets.
  */
@@ -140,7 +142,30 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
     else acc
   }
   
-  def union(that: TweetSet): TweetSet = left.union(right).union(that).incl(elem)
+//  def union(that: TweetSet): TweetSet = {
+//    println("this: " + this + " ---------------- that: " + that)
+//    union1(that)
+//  }
+//  def union1(that: TweetSet): TweetSet = {
+//    val res1 = right.union(that)
+//    println("> res1: " + res1)
+//    val res2 = left.union(res1)
+//    println("> res2: " + res2)
+//    println("# including elem: " + elem)
+//    val res3 = res2.incl(elem)
+//    println("> res3: " + res2)
+//    res3
+//  }
+def union(that: TweetSet): TweetSet = {
+  union1(that)
+}
+  def union1(that: TweetSet): TweetSet = {
+    val res1 = right.union(that)
+    val res2 = left.union(res1)
+//    println("# including elem: " + elem)
+    val res3 = res2.incl(elem)
+    res3
+  }
   
   def mostRetweeted: Tweet = {
     val leftMost = left.mostRetweeted
@@ -163,7 +188,7 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
     reverse(descendingSort(this, Nil), Nil)
   }
   
-  override def toString: String = "{" + left + elem + right + "}"
+  override def toString: String = "   {" + left + elem + right + "}"
   
   /**
    * The following methods are already implemented
@@ -237,7 +262,11 @@ object GoogleVsApple {
 
 object Main extends App {
   // Print the trending tweets
-  // GoogleVsApple.trending foreach println
+//   GoogleVsApple.trending foreach println
+   GoogleVsApple.googleTweets foreach println
   
-  GoogleVsApple.allTweets.foreach(println)
+//  GoogleVsApple.allTweets.foreach(println)
+  
+//  val list = TweetReader.gizmodoTweets
+//  list.foreach(println)
 }
