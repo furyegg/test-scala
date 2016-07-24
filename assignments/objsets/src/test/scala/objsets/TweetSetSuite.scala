@@ -11,7 +11,7 @@ class TweetSetSuite extends FunSuite {
   trait TestSets {
     val set1 = new Empty
     val set2 = set1.incl(new Tweet("a", "a body", 20))
-    val set3 = set2.incl(new Tweet("b", "b body", 20))
+    val set3 = set2.incl(new Tweet("b", "b body", 40))
     val c = new Tweet("c", "c body", 7)
     val d = new Tweet("d", "d body", 9)
     val e = new Tweet("e", "e body", 30)
@@ -43,7 +43,13 @@ class TweetSetSuite extends FunSuite {
 
   test("filter: 20 on set5") {
     new TestSets {
-      assert(size(set5.filter(tw => tw.retweets == 20)) === 2)
+      assert(size(set5.filter(tw => tw.retweets == 20)) === 1)
+    }
+  }
+  
+  test("filter: 30 on set6") {
+    new TestSets {
+      assert(size(set6.filter(tw => tw.retweets > 20)) === 2)
     }
   }
 
@@ -67,8 +73,7 @@ class TweetSetSuite extends FunSuite {
   
   test("most: with set6") {
     new TestSets {
-      println(set6)
-      assert(set6.mostRetweeted.retweets === 30)
+      assert(set6.mostRetweeted.retweets === 40)
     }
   }
 
@@ -76,7 +81,16 @@ class TweetSetSuite extends FunSuite {
     new TestSets {
       val trends = set5.descendingByRetweet
       assert(!trends.isEmpty)
-      assert(trends.head.user == "a" || trends.head.user == "b")
+      assert(trends.head.user == "b")
+    }
+  }
+  
+  test("descending: set6") {
+    new TestSets {
+      val trends = set6.descendingByRetweet
+      trends.foreach(println)
+      assert(!trends.isEmpty)
+      assert(trends.head.user == "b")
     }
   }
 

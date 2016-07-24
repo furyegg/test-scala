@@ -2,8 +2,6 @@ package objsets
 
 import TweetReader._
 
-import scala.util.parsing.json.JSON
-
 /**
  * A class to represent tweets.
  */
@@ -72,24 +70,24 @@ abstract class TweetSet {
   /**
    * Returns a list containing all tweets of this set, sorted by retweet count
    * in descending order. In other words, the head of the resulting list should
-   * have the highest retweet count.
-   *
-   * Hint: the method `remove` on TweetSet will be very useful.
-   * Question: Should we implment this method here, or should it remain abstract
-   * and be implemented in the subclasses?
-   */
+  * have the highest retweet count.
+  *
+  * Hint: the method `remove` on TweetSet will be very useful.
+  * Question: Should we implment this method here, or should it remain abstract
+  * and be implemented in the subclasses?
+    */
   def descendingByRetweet: TweetList
   
   /**
-   * The following methods are already implemented
-   */
-
+    * The following methods are already implemented
+    */
+  
   /**
-   * Returns a new `TweetSet` which contains all elements of this set, and the
-   * the new element `tweet` in case it does not already exist in this set.
-   *
-   * If `this.contains(tweet)`, the current set is returned.
-   */
+    * Returns a new `TweetSet` which contains all elements of this set, and the
+    * the new element `tweet` in case it does not already exist in this set.
+    *
+    * If `this.contains(tweet)`, the current set is returned.
+    */
   def incl(tweet: Tweet): TweetSet
 
   /**
@@ -109,7 +107,7 @@ abstract class TweetSet {
 }
 
 class Empty extends TweetSet {
-  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = this
+  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = acc
   
   def union(that: TweetSet): TweetSet = that
   
@@ -135,36 +133,12 @@ class Empty extends TweetSet {
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
   
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = {
-    if (p(elem)) {
-      left.filterAcc(p, acc.incl(elem))
-      right.filterAcc(p, acc.incl(elem))
-    }
-    else acc
+    if (p(elem)) right.filterAcc(p, left.filterAcc(p, acc.incl(elem)))
+    else right.filterAcc(p, left.filterAcc(p, acc))
   }
-  
-//  def union(that: TweetSet): TweetSet = {
-//    println("this: " + this + " ---------------- that: " + that)
-//    union1(that)
-//  }
-//  def union1(that: TweetSet): TweetSet = {
-//    val res1 = right.union(that)
-//    println("> res1: " + res1)
-//    val res2 = left.union(res1)
-//    println("> res2: " + res2)
-//    println("# including elem: " + elem)
-//    val res3 = res2.incl(elem)
-//    println("> res3: " + res2)
-//    res3
-//  }
-def union(that: TweetSet): TweetSet = {
-  union1(that)
-}
-  def union1(that: TweetSet): TweetSet = {
-    val res1 = right.union(that)
-    val res2 = left.union(res1)
-//    println("# including elem: " + elem)
-    val res3 = res2.incl(elem)
-    res3
+
+  def union(that: TweetSet): TweetSet = {
+    right.union(left.union(that.incl(elem)))
   }
   
   def mostRetweeted: Tweet = {
@@ -174,6 +148,10 @@ def union(that: TweetSet): TweetSet = {
     else if (leftMost == null) if (rightMost.retweets > elem.retweets) rightMost else elem
     else if (leftMost.retweets > elem.retweets) leftMost else elem
   }
+//  def mostRetweeted: Tweet = {
+//    def findMost(set: TweetSet, res: Tweet): Tweet =
+//      if ()
+//  }
   
   def descendingByRetweet: TweetList = {
     def descendingSort(set: TweetSet, list: TweetList): TweetList = {
@@ -182,7 +160,7 @@ def union(that: TweetSet): TweetSet = {
       else descendingSort(set.remove(most), new Cons(most, list))
     }
     def reverse(list: TweetList, revList: TweetList): TweetList = {
-      if (list.tail.isEmpty) revList
+      if (list.tail.isEmpty) new Cons(list.head, revList)
       else reverse(list.tail, new Cons(list.head, revList))
     }
     reverse(descendingSort(this, Nil), Nil)
@@ -232,18 +210,17 @@ object Nil extends TweetList {
   def head = throw new java.util.NoSuchElementException("head of EmptyList")
   def tail = throw new java.util.NoSuchElementException("tail of EmptyList")
   def isEmpty = true
+  override def toString: String = "#"
 }
 
 class Cons(val head: Tweet, val tail: TweetList) extends TweetList {
   def isEmpty = false
+  override def toString: String = "" + head + tail
 }
-
 
 object GoogleVsApple {
   val google = List("android", "Android", "galaxy", "Galaxy", "nexus", "Nexus")
   val apple = List("ios", "iOS", "iphone", "iPhone", "ipad", "iPad")
-  
-  val allTweets = TweetReader.allTweets
   
   def relatedTweet(t: Tweet, keys: List[String]): Boolean =
     if (keys.tail.isEmpty) return false
@@ -263,10 +240,8 @@ object GoogleVsApple {
 object Main extends App {
   // Print the trending tweets
 //   GoogleVsApple.trending foreach println
-   GoogleVsApple.googleTweets foreach println
+//  val list = GoogleVsApple.googleTweets.descendingByRetweet
+  val t = GoogleVsApple.googleTweets.mostRetweeted
+  println(t)
   
-//  GoogleVsApple.allTweets.foreach(println)
-  
-//  val list = TweetReader.gizmodoTweets
-//  list.foreach(println)
 }
