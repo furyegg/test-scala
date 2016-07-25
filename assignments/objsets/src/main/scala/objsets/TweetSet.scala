@@ -6,9 +6,10 @@ import TweetReader._
  * A class to represent tweets.
  */
 class Tweet(val user: String, val text: String, val retweets: Int) {
-  override def toString: String =
-    "User: " + user + " -> " +
-    "Text: " + text + " [" + retweets + "]"
+//  override def toString: String =
+//    "User: " + user + " -> " +
+//    "Text: " + text + " [" + retweets + "]"
+override def toString: String = " [" + retweets + "] "
 }
 
 /**
@@ -104,6 +105,8 @@ abstract class TweetSet {
    * This method takes a function and applies it to every element in the set.
    */
   def foreach(f: Tweet => Unit): Unit
+
+  def isEmpty: Boolean
 }
 
 class Empty extends TweetSet {
@@ -128,6 +131,8 @@ class Empty extends TweetSet {
   def remove(tweet: Tweet): TweetSet = this
 
   def foreach(f: Tweet => Unit): Unit = ()
+
+  def isEmpty: Boolean = true
 }
 
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
@@ -140,19 +145,31 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
   def union(that: TweetSet): TweetSet = {
     right.union(left.union(that.incl(elem)))
   }
-  
-  def mostRetweeted: Tweet = {
-    val leftMost = left.mostRetweeted
-    val rightMost = right.mostRetweeted
-    if (leftMost == null && rightMost == null) elem
-    else if (leftMost == null) if (rightMost.retweets > elem.retweets) rightMost else elem
-    else if (leftMost.retweets > elem.retweets) leftMost else elem
-  }
+
 //  def mostRetweeted: Tweet = {
-//    def findMost(set: TweetSet, res: Tweet): Tweet =
-//      if ()
+//    val leftMost = left.mostRetweeted
+//    val most1 =
+//      if (leftMost == null) elem
+//      else if (leftMost.retweets > elem.retweets) leftMost
+//      else elem
+//
+//    val rightMost = right.mostRetweeted
+//    val most2 =
+//      if (rightMost == null) elem
+//      else if (rightMost.retweets > elem.retweets) rightMost
+//      else elem
+//
+//    if (most1.retweets > most2.retweets) most1 else most2
 //  }
-  
+
+  def mostRetweeted: Tweet = {
+    def compare(first: Tweet, second: Tweet): Boolean =
+      if (first == null) false
+      else if (second == null) true
+      else first.retweets > second.retweets
+    right.filterAcc(compare(_, left.filterAcc(compare(_, elem), new Empty).mostRetweeted), new Empty).mostRetweeted
+  }
+
   def descendingByRetweet: TweetList = {
     def descendingSort(set: TweetSet, list: TweetList): TweetList = {
       val most = set.mostRetweeted
@@ -193,6 +210,8 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
     left.foreach(f)
     right.foreach(f)
   }
+
+  def isEmpty: Boolean = false
 }
 
 trait TweetList {
@@ -239,9 +258,5 @@ object GoogleVsApple {
 
 object Main extends App {
   // Print the trending tweets
-//   GoogleVsApple.trending foreach println
-//  val list = GoogleVsApple.googleTweets.descendingByRetweet
-  val t = GoogleVsApple.googleTweets.mostRetweeted
-  println(t)
-  
+  GoogleVsApple.trending foreach println
 }
