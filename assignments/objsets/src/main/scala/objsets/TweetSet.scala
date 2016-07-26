@@ -143,32 +143,33 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
   }
 
   def union(that: TweetSet): TweetSet = {
-    right.union(left.union(that.incl(elem)))
+    left.union(right).union(that).incl(elem)
+    left.union(right.union(that.incl(elem)))
+  }
+
+  def mostRetweeted: Tweet = {
+    val leftMost = left.mostRetweeted
+    val most1 =
+      if (leftMost == null) elem
+      else if (leftMost.retweets > elem.retweets) leftMost
+      else elem
+
+    val rightMost = right.mostRetweeted
+    val most2 =
+      if (rightMost == null) elem
+      else if (rightMost.retweets > elem.retweets) rightMost
+      else elem
+
+    if (most1.retweets > most2.retweets) most1 else most2
   }
 
 //  def mostRetweeted: Tweet = {
-//    val leftMost = left.mostRetweeted
-//    val most1 =
-//      if (leftMost == null) elem
-//      else if (leftMost.retweets > elem.retweets) leftMost
-//      else elem
-//
-//    val rightMost = right.mostRetweeted
-//    val most2 =
-//      if (rightMost == null) elem
-//      else if (rightMost.retweets > elem.retweets) rightMost
-//      else elem
-//
-//    if (most1.retweets > most2.retweets) most1 else most2
+//    def compare(first: Tweet, second: Tweet): Boolean =
+//      if (first == null) false
+//      else if (second == null) true
+//      else first.retweets > second.retweets
+//    right.filterAcc(compare(_, left.filterAcc(compare(_, elem), new Empty).mostRetweeted), new Empty).mostRetweeted
 //  }
-
-  def mostRetweeted: Tweet = {
-    def compare(first: Tweet, second: Tweet): Boolean =
-      if (first == null) false
-      else if (second == null) true
-      else first.retweets > second.retweets
-    right.filterAcc(compare(_, left.filterAcc(compare(_, elem), new Empty).mostRetweeted), new Empty).mostRetweeted
-  }
 
   def descendingByRetweet: TweetList = {
     def descendingSort(set: TweetSet, list: TweetList): TweetList = {
