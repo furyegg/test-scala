@@ -17,7 +17,7 @@ object Main {
     if (c == 0 || c == r) 1
     else pascal(c - 1, r - 1) + pascal(c, r - 1)
   }
-  
+
   /**
    * Exercise 2
    */
@@ -49,11 +49,16 @@ object Main {
    */
   def countChange(money: Int, coins: List[Int]): Int = {
     def count(money:Int, coins: List[Int], coinIndex: Int): Int = {
-//      println("money: " + money + ", coin index: " + coinIndex)
+      println("money: " + money + ", coin index: " + coinIndex)
       if (money < 0) 0
       else if (money == 0) 1
       else if (coinIndex == coins.length && money > 0) 0
-      else count(money - coins(coinIndex), coins, coinIndex) + count(money, coins, coinIndex + 1)
+//      else count(money - coins(coinIndex), coins, coinIndex) + count(money, coins, coinIndex + 1)
+      else {
+        val res1 = count(money - coins(coinIndex), coins, coinIndex)
+        val res2 = count(money, coins, coinIndex + 1)
+        res1 + res2
+      }
     }
 
     if (coins.isEmpty) 0
