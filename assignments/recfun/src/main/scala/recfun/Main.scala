@@ -48,20 +48,10 @@ object Main {
    * http://www.algorithmist.com/index.php/Coin_Change
    */
   def countChange(money: Int, coins: List[Int]): Int = {
-    def count(money:Int, coins: List[Int], coinIndex: Int): Int = {
-      println("money: " + money + ", coin index: " + coinIndex)
-      if (money < 0) 0
-      else if (money == 0) 1
-      else if (coinIndex == coins.length && money > 0) 0
-//      else count(money - coins(coinIndex), coins, coinIndex) + count(money, coins, coinIndex + 1)
-      else {
-        val res1 = count(money - coins(coinIndex), coins, coinIndex)
-        val res2 = count(money, coins, coinIndex + 1)
-        res1 + res2
-      }
-    }
-
-    if (coins.isEmpty) 0
-    else count(money, coins, 0)
+    println("money: " + money + ", coins: " + coins)
+    if (money < 0) 0
+    else if (money == 0) 1
+    else if (coins.isEmpty && money > 0) 0
+    else countChange(money - coins.head, coins) + countChange(money, coins.tail)
   }
 }
