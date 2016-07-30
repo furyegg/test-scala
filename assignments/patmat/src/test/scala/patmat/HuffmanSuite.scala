@@ -12,12 +12,19 @@ class HuffmanSuite extends FunSuite {
 	trait TestTrees {
 		val t1 = Fork(Leaf('a',2), Leaf('b',3), List('a','b'), 5)
 		val t2 = Fork(Fork(Leaf('a',2), Leaf('b',3), List('a','b'), 5), Leaf('d',4), List('a','b','d'), 9)
+    val t3 = makeCodeTree(t1, t2)
 	}
 
 
   test("weight of a larger tree") {
     new TestTrees {
       assert(weight(t1) === 5)
+    }
+  }
+  
+  test("weight of t3") {
+    new TestTrees {
+      assert(weight(t3) === 14)
     }
   }
 
@@ -43,6 +50,11 @@ class HuffmanSuite extends FunSuite {
     val leaflist = List(Leaf('e', 1), Leaf('t', 2), Leaf('x', 4))
     assert(combine(leaflist) === List(Fork(Leaf('e',1),Leaf('t',2),List('e', 't'),3), Leaf('x',4)))
   }
+  
+//  test("create tree") {
+//    val s = "ettx"
+//    assert(createCodeTree(string2Chars(s)) === List(Fork(Leaf('e',1),Leaf('t',2),List('e', 't'),3), Leaf('x',4)))
+//  }
 
 
   test("decode and encode a very short text should be identity") {
