@@ -13,6 +13,7 @@ class HuffmanSuite extends FunSuite {
 		val t1 = Fork(Leaf('a',2), Leaf('b',3), List('a','b'), 5)
 		val t2 = Fork(Fork(Leaf('a',2), Leaf('b',3), List('a','b'), 5), Leaf('d',4), List('a','b','d'), 9)
     val t3 = makeCodeTree(t1, t2)
+    val tree = createCodeTree(string2Chars("ettttxx"))
 	}
 
 
@@ -39,6 +40,10 @@ class HuffmanSuite extends FunSuite {
   test("string2chars(\"hello, world\")") {
     assert(string2Chars("hello, world") === List('h', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd'))
   }
+  
+  test("times(\"hello, world\")") {
+    println(times(string2Chars("helloo, world")))
+  }
 
 
   test("makeOrderedLeafList for some frequency table") {
@@ -51,15 +56,34 @@ class HuffmanSuite extends FunSuite {
     assert(combine(leaflist) === List(Fork(Leaf('e',1),Leaf('t',2),List('e', 't'),3), Leaf('x',4)))
   }
   
-//  test("create tree") {
-//    val s = "ettx"
-//    assert(createCodeTree(string2Chars(s)) === List(Fork(Leaf('e',1),Leaf('t',2),List('e', 't'),3), Leaf('x',4)))
-//  }
-
+  test("create tree") {
+    new TestTrees {
+      assert(tree.toString === "Fork(Fork(Leaf(e,1),Leaf(x,2),List(e, x),3),Leaf(t,4),List(e, x, t),7)")
+    }
+  }
+  
+  test("encode") {
+    new TestTrees {
+      assert(encode(tree)(string2Chars("ext")) === List(0, 0, 0, 1, 1))
+    }
+  }
 
   test("decode and encode a very short text should be identity") {
     new TestTrees {
       assert(decode(t1, encode(t1)("ab".toList)) === "ab".toList)
+      assert(decode(tree, List(0, 0, 0, 1, 1)) === "ext".toList)
+    }
+  }
+  
+  test("convert") {
+    new TestTrees {
+      assert(convert(tree).toString === "List((e,List(0, 0)), (x,List(0, 1)), (t,List(1)))")
+    }
+  }
+  
+  test("quick encode") {
+    new TestTrees {
+      assert(quickEncode(tree)(string2Chars("ext")) === List(0, 0, 0, 1, 1))
     }
   }
 
