@@ -10,3 +10,12 @@ def lengthFun[T](xs: List[T]): Int =
 
 mapFun[Int, String](nums, x => "" + x + x)
 lengthFun(nums)
+
+def reverse[T](xs: List[T]): List[T] =
+  (xs foldLeft List[T]())((list, x) => x :: list)
+
+def reverse2[T](xs: List[T]): List[T] =
+  (xs foldRight List[T]())((x, list) => list :+ x)
+
+reverse(nums)
+reverse2(nums)
