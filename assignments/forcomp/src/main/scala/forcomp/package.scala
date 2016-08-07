@@ -1,7 +1,7 @@
 package object forcomp {
   val dictionaryPath = List("forcomp", "linuxwords.txt")
 
-  def loadDictionary = {
+  def loadDictionary: List[String] = {
     val wordstream = Option {
       getClass.getResourceAsStream(dictionaryPath.mkString("/"))
     } orElse {

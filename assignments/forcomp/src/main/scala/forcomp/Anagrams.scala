@@ -25,7 +25,7 @@ object Anagrams {
   /** The dictionary is simply a sequence of words.
    *  It is predefined and obtained as a sequence using the utility method `loadDictionary`.
    */
-  val dictionary: List[Word] = loadDictionary
+  val dictionary: List[Word] = loadDictionary.map(_.toLowerCase)
 
   /** Converts the word into its character occurrence list.
    *
@@ -34,10 +34,15 @@ object Anagrams {
    *
    *  Note: you must use `groupBy` to implement this method!
    */
-  def wordOccurrences(w: Word): Occurrences = ???
+//  def wordOccurrences(w: Word): Occurrences = w.toLowerCase.toList.groupBy(e => e).toList.map(p => (p._1 -> p._2.length)).sorted
+  def wordOccurrences(w: Word): Occurrences =
+    (for {
+        (letter, list) <- w.toLowerCase.toList.groupBy(e => e).toList
+      } yield (letter -> list.length)
+    ).sorted
 
   /** Converts a sentence into its character occurrence list. */
-  def sentenceOccurrences(s: Sentence): Occurrences = ???
+  def sentenceOccurrences(s: Sentence): Occurrences = wordOccurrences(s.mkString(""))
 
   /** The `dictionaryByOccurrences` is a `Map` from different occurrences to a sequence of all
    *  the words that have that occurrence count.
@@ -54,10 +59,18 @@ object Anagrams {
    *    List(('a', 1), ('e', 1), ('t', 1)) -> Seq("ate", "eat", "tea")
    *
    */
-  lazy val dictionaryByOccurrences: Map[Occurrences, List[Word]] = ???
+//  lazy val dictionaryByOccurrences: Map[Occurrences, List[Word]] =
+//    dictionary.map(w => (wordOccurrences(w) -> w))
+//        .groupBy(_._1)
+//        .map(p => (p._1 -> p._2.map(e => e._2)))
+  lazy val dictionaryByOccurrences: Map[Occurrences, List[Word]] =
+    (for {
+        (occ, list) <- dictionary.map(w => (wordOccurrences(w) -> w)).groupBy(_._1)
+      } yield (occ -> list.map(_._2))
+    ).withDefaultValue(Nil)
 
   /** Returns all the anagrams of a given word. */
-  def wordAnagrams(word: Word): List[Word] = ???
+  def wordAnagrams(word: Word): List[Word] = dictionaryByOccurrences(wordOccurrences(word))
 
   /** Returns the list of all subsets of the occurrence list.
    *  This includes the occurrence itself, i.e. `List(('k', 1), ('o', 1))`
@@ -136,4 +149,8 @@ object Anagrams {
    *  Note: There is only one anagram of an empty sentence.
    */
   def sentenceAnagrams(sentence: Sentence): List[Sentence] = ???
+  
+  def main(args: Array[String]): Unit = {
+    
+  }
 }

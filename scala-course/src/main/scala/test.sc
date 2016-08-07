@@ -1,26 +1,8 @@
-def sequence[A](a: List[Option[A]]): Option[List[A]] = a match {
-  case Nil => None
-  case list: List[Some[A]] => list match {
-    case Nil => Some(Nil)
-    case x :: xs => Some(sequence(xs).get :+ x.get)
-  }
-  case _ => None
-}
+val w = "asdfasdf"
+val list = w.toLowerCase.toList.groupBy(e => e).toList
+//list.map(((_, _)) => (_ -> _))
 
-def sequence2[A](l: List[Option[A]]): Option[List[A]] = l match {
-  case Nil => Some(Nil)
-  case h :: t => h match {
-    case None => None
-    case Some(head) => sequence2(t) match {
-      case None => None
-      case Some(list) => Some(head :: list)
-    }
-  }
-}
+val list2 = List(('b' -> 2), ('a' -> 1), ('c' -> 3))
+list2.map(e => (e._1 -> (e._2 * 2)))
 
-def sequence3[A](l: List[Option[A]]) = (Option(List.empty[A]) /: l) {
-  case(Some(sofar), Some(value)) => Some(value :: sofar);
-  case(_, _) => None
-}
-
-val map = Map(1 -> "a")
+val dictionary: List[String] = List("A", "B", "C")
