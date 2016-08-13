@@ -1,8 +1,10 @@
-val w = "asdfasdf"
-val list = w.toLowerCase.toList.groupBy(e => e).toList
-//list.map(((_, _)) => (_ -> _))
+val abba = List(('a', 2), ('b', 2))
 
-val list2 = List(('b' -> 2), ('a' -> 1), ('c' -> 3))
-list2.map(e => (e._1 -> (e._2 * 2)))
+val allOccurrences: List[(Char, Int)] = for {
+  e <- abba
+  i <- 1 to e._2
+} yield (e._1, i)
 
-val dictionary: List[String] = List("A", "B", "C")
+val list1 = List('a','b','c')
+val list2 = List('1','2')
+val list3 = List(list1, list2) ++ List(Nil)
