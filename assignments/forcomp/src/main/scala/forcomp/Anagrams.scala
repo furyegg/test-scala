@@ -25,7 +25,7 @@ object Anagrams {
   /** The dictionary is simply a sequence of words.
    *  It is predefined and obtained as a sequence using the utility method `loadDictionary`.
    */
-  val dictionary: List[Word] = loadDictionary.map(_.toLowerCase)
+  val dictionary: List[Word] = loadDictionary
 
   /** Converts the word into its character occurrence list.
    *
@@ -95,24 +95,28 @@ object Anagrams {
    *  in the example above could have been displayed in some other order.
    */
   def combinations(occurrences: Occurrences): List[Occurrences] = {
-    def getSubOccurences(occur: (Char, Int)): Occurrences =
-      (for (i <- 1 to occur._2) yield (occur._1, i)).toList
-    
-    def comb(res: List[Occurrences], allOccurrences: List[Occurrences]): List[Occurrences] = allOccurrences match {
-      case Nil => res
-      case x :: xs => comb(merge(res, x), xs)
-    }
-    
-    def merge(res: List[Occurrences], occur: Occurrences): List[Occurrences] = res match {
-      case Nil => occur.map(List(_))
-      case x :: xs => {
-        val list = for (e <- occur) yield (x :+ e)
-        list ++ merge(xs, occur)
-      }
-    }
-  
-    val allOccurrences = for (e <- occurrences) yield getSubOccurences(e)
-    List(Nil) ++ allOccurrences(0).map(List(_)) ++ comb(Nil, allOccurrences)
+    occurrences match {
+       case Nil=> List(Nil)
+       case head::tail => {
+         val headTuple2s = head match {
+           case (first, second)=> {
+             for (x <- 1 to second) yield (first, x)
+           }.toList
+         }
+         
+         val tailOccurences = combinations(tail)
+         val middle = tailOccurences match {
+           case Nil => List(Nil)
+           case _=>
+             for {
+               headTuple <- headTuple2s
+               tailOcurence <- tailOccurences
+               tailTuple <- tailOcurence
+             } yield headTuple :: tailTuple :: Nil
+         }
+         headTuple2s.map(x=> List(x)) ::: middle ::: tailOccurences
+       }
+     }
   }
 
   /** Subtracts occurrence list `y` from occurrence list `x`.
@@ -125,7 +129,20 @@ object Anagrams {
    *  Note: the resulting value is an occurrence - meaning it is sorted
    *  and has no zero-entries.
    */
-  def subtract(x: Occurrences, y: Occurrences): Occurrences = ???
+  def subtract(x: Occurrences, y: Occurrences): Occurrences = {
+    val xmap = x.map(e => (e._1 -> e._2)).toMap.withDefaultValue(0)
+    
+    def sub(map: Map[Char, Int], occur: Occurrences): Occurrences = occur match {
+      case Nil => map.toList
+      case head :: tail => {
+        val xValue = map(head._1)
+        if (xValue > 0) sub(map.updated(head._1, xValue - head._2), tail)
+        else sub(map, tail)
+      }
+    }
+    
+    sub(xmap, y).filter(_._2 > 0)
+  }
 
   /** Returns a list of all anagram sentences of the given sentence.
    *
@@ -167,7 +184,19 @@ object Anagrams {
    *
    *  Note: There is only one anagram of an empty sentence.
    */
-  def sentenceAnagrams(sentence: Sentence): List[Sentence] = ???
+  def sentenceAnagrams(sentence: Sentence): List[Sentence] = {
+    def solve(occurrences: Occurrences): List[Sentence] = {
+      if (occurrences.isEmpty) List(List())
+      else {
+        for {
+          each <- combinations(occurrences)
+          word <- (dictionaryByOccurrences withDefaultValue List()) (each)
+          rest <- solve(subtract(occurrences, each))
+        } yield word :: rest
+      }
+    }
+    solve(sentenceOccurrences(sentence))
+  }
   
   def main(args: Array[String]): Unit = {
     

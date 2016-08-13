@@ -30,19 +30,26 @@ class AnagramsSuite extends FunSuite  {
 
 
   test("word anagrams: married") {
-    assert(wordAnagrams("married").toSet === Set("married", "admirer"))
+    assert(wordAnagrams("Married").toSet === Set("married", "admirer"))
   }
 
   test("word anagrams: player") {
     assert(wordAnagrams("player").toSet === Set("parley", "pearly", "player", "replay"))
   }
-
-
-
+  
+  
   test("subtract: lard - r") {
     val lard = List(('a', 1), ('d', 1), ('l', 1), ('r', 1))
     val r = List(('r', 1))
     val lad = List(('a', 1), ('d', 1), ('l', 1))
+    assert(subtract(lard, r) === lad)
+  }
+  
+  
+  test("subtract: jimmy - my") {
+    val lard = List(('j', 1), ('i', 1), ('m', 2), ('y', 1))
+    val r = List(('m', 1), ('y', 1))
+    val lad = List(('j', 1), ('i', 1), ('m', 1))
     assert(subtract(lard, r) === lad)
   }
 
