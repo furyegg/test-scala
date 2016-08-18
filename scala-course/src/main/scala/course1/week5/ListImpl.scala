@@ -29,6 +29,7 @@ object ListImpl {
   
   def main(args: Array[String]): Unit = {
     val list = List(1,2,3,4)
+    list.withFilter()
     println(init(list))
     println(removeAt(1, list))
   

@@ -18,7 +18,7 @@ def sequence2[A](l: List[Option[A]]): Option[List[A]] = l match {
   }
 }
 
-def sequence3[A](l: List[Option[A]]) = (Option(List.empty[A]) /: l) {
+def sequence3[A](l: List[Option[A]]): Option[List[A]] = (Option(List.empty[A]) /: l) {
   case(Some(sofar), Some(value)) => Some(value :: sofar);
   case(_, _) => None
 }
