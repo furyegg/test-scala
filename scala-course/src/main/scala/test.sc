@@ -1,8 +1,6 @@
-val list = List(1,2,-3,4)
-list.filter(_ > 0)
-list.withFilter(_ > 0)
-for {
-  x <- list.withFilter(_ > 0)
-} yield x
+val list = List(1,2,3,4)
+list.take(3)
 
-(1 -> 1.0)
+val stream = Stream(1, 2, 3)
+stream.tail
+stream.apply(2)

@@ -144,7 +144,7 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
 
   def union(that: TweetSet): TweetSet = {
     left.union(right).union(that).incl(elem)
-    left.union(right.union(that.incl(elem)))
+//    left.union(right.union(that.incl(elem)))
   }
 
   def mostRetweeted: Tweet = {
@@ -153,13 +153,13 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
       if (leftMost == null) elem
       else if (leftMost.retweets > elem.retweets) leftMost
       else elem
-
+    
     val rightMost = right.mostRetweeted
     val most2 =
       if (rightMost == null) elem
       else if (rightMost.retweets > elem.retweets) rightMost
       else elem
-
+    
     if (most1.retweets > most2.retweets) most1 else most2
   }
 
