@@ -4,3 +4,5 @@ list.take(3)
 val stream = Stream(1, 2, 3)
 stream.tail
 stream.apply(2)
+
+list.view

@@ -4,4 +4,4 @@ def streamRange(lo: Int, hi: Int): Stream[Int] = {
 }
 
 val stream = streamRange(1, 10)
-stream.take(3).toList
+val s2 = 20 #:: stream
