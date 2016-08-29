@@ -56,9 +56,14 @@ class BloxorzSuite extends FunSuite {
     }
   }
 
-	test("findChar level 1") {
+	test("findChar start pos level 1") {
     new Level1 {
       assert(startPos == Pos(1,1))
+    }
+  }
+  test("findChar goal pos level 1") {
+    new Level1 {
+      assert(goal == Pos(4,7))
     }
   }
 
