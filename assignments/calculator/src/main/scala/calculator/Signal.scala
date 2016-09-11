@@ -55,3 +55,19 @@ object Signal {
   val caller = new DynamicVariable[Signal[_]](NoSignal)
   def apply[T](expr: => T) = new Signal(expr)
 }
+
+object SignalTest {
+  def main(args: Array[String]): Unit = {
+    val s1 = Var(1)
+    val s2 = Signal(s1() + 1)
+    val s3 = Signal(s1() * 2)
+    
+    println(s"${s2()}, ${s3()}")
+    
+    s1() = 3
+    println(s"${s2()}, ${s3()}")
+  
+    s1() = 6
+    println(s"${s2()}, ${s3()}")
+  }
+}
