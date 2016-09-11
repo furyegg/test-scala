@@ -23,7 +23,7 @@ object CalculatorUI extends js.JSApp {
     document.getElementById(id).asInstanceOf[A]
 
   def elementValueSignal(element: html.Element,
-      getValue: () => String): Signal[String] = {
+    getValue: () => String): Signal[String] = {
     var prevVal = getValue()
     val value = new Var(prevVal)
     val onChange = { (event: dom.Event) =>
