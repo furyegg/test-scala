@@ -1,3 +1,2 @@
-val map = Map(("a"->1),("b"->2))
-map.foreach(e => println(s"${e._1}->${e._2}"))
-// .foreach((k, v) => println(s"${k}->${v}"))
+val list = List(1,2)
+list.foldLeft()

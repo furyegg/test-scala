@@ -8,6 +8,7 @@ def getUniqueId(): Long = {
 def startThread() = {
   val t = new Thread {
     override def run(): Unit = {
+      println("thread running...")
       val uids = for (i <- 0 until 10) yield getUniqueId()
       println(uids)
     }
