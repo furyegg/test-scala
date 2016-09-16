@@ -62,10 +62,19 @@ package object scalashop {
         allAlpha :+= alpha(pixel)
       }
       
-      rgba(average(allRed), average(allGreen), average(allBlue), average(allAlpha))
+      rgba(average(allRed).toInt, average(allGreen).toInt, average(allBlue).toInt, average(allAlpha).toInt)
     }
   
-  def average(list: List[Int]): Int = list.sum / list.length
+  def average(list: List[Int]): Double = list.sum / list.length
+  
+//  def average(s: Seq[Int]): Double = {
+//    val t = s.foldLeft((0.0, 0)) ((acc, i) => (acc._1 + i, acc._2 + 1))
+//    t._1 / t._2
+//  }
+//
+//  def average2(s: Seq[Int]): Double =
+//    s.foldLeft((0.0, 1)) ((acc, i) => ((acc._1 + (i - acc._1) / acc._2), acc._2 + 1))._1
+    
   
   def split(total: Int, numTasks: Int): List[(Int, Int)] = {
     val tasks = if (total < numTasks) total else numTasks

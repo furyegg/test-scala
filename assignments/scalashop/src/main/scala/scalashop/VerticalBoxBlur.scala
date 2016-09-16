@@ -23,7 +23,7 @@ object VerticalBoxBlurRunner {
     }
     println(s"sequential blur time: $seqtime ms")
 
-    val numTasks = 100
+    val numTasks = 32
     val partime = standardConfig measure {
       VerticalBoxBlur.parBlur(src, dst, numTasks, radius)
     }
