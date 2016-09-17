@@ -1,4 +1,4 @@
-package course2.week2
+package course2.week8
 
 object WaterPouring {
   

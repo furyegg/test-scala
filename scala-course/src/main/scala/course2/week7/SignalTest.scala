@@ -1,4 +1,4 @@
-package course2.week4
+package course2.week7
 
 object SignalTest {
   def main(args: Array[String]): Unit = {

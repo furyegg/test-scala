@@ -1,4 +1,4 @@
-package course2.week4
+package course2.week7
 
 class StackableVariable[T](init: T) {
   private var values: List[T] = List(init)

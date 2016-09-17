@@ -1,4 +1,4 @@
-package course3.week1
+package course3.week11
 
 object ParallelismJVM1 {
   private var uidCount = 0L
