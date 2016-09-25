@@ -13,7 +13,7 @@ object ParallelCountChangeRunner {
     Key.exec.minWarmupRuns -> 20,
     Key.exec.maxWarmupRuns -> 40,
     Key.exec.benchRuns -> 80,
-    Key.verbose -> true
+    Key.verbose -> false
   ) withWarmer(new Warmer.Default)
 
   def main(args: Array[String]): Unit = {
@@ -59,9 +59,7 @@ object ParallelCountChange {
    */
   def parCountChange(money: Int, coins: List[Int], threshold: Threshold): Int = {
     if (threshold(money, coins)) {
-      if (money < 0) 0
-      else if (money > 0 && coins.isEmpty) 0
-      else 1
+      countChange(money, coins)
     }
     else {
       val (res1, res2) = parallel(
@@ -73,15 +71,18 @@ object ParallelCountChange {
 
   /** Threshold heuristic based on the starting money. */
   def moneyThreshold(startingMoney: Int): Threshold =
-    ???
+    (money, coins) => money <= startingMoney * 2 / 3 || coins.isEmpty
 
   /** Threshold heuristic based on the total number of initial coins. */
-  def totalCoinsThreshold(totalCoins: Int): Threshold =
-    ???
-
+  def totalCoinsThreshold(totalCoins: Int): Threshold = {
+    (money, coins) => money <= 0 || coins.length <= totalCoins * 2 / 3
+  }
 
   /** Threshold heuristic based on the starting money and the initial list of coins. */
   def combinedThreshold(startingMoney: Int, allCoins: List[Int]): Threshold = {
-    ???
+    (money, coins) =>
+      if (money <= 0 || allCoins.isEmpty) true
+      else if (startingMoney == 1 && allCoins.length > 1) true
+      else coins.length * money <= startingMoney * allCoins.length / 2
   }
 }

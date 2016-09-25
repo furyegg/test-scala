@@ -1,12 +1,12 @@
 package reductions
 
 import java.util.concurrent._
+
 import scala.collection._
 import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import common._
-
 import ParallelParenthesesBalancing._
 
 @RunWith(classOf[JUnitRunner])
@@ -44,6 +44,17 @@ class ParallelParenthesesBalancingSuite extends FunSuite {
     check("(.", false)
     check(").", false)
   }
-
+  
+  test("parallel balance: '(if (zero? x) max (/ 1 x))' is balanced") {
+    assert(parBalance("(if (zero? x) max (/ 1 x))".toCharArray, 10))
+  }
+  
+  test("parallel not balanced") {
+    assert(!parBalance("(if (zero? x) max (/ )1 x))".toCharArray, 10))
+  }
+  
+  test("parallel balanced") {
+    assert(!parBalance(")(".toArray, 1))
+  }
 
 }

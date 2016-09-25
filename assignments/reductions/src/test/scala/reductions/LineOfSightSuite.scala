@@ -29,6 +29,20 @@ class LineOfSightSuite extends FunSuite {
     downsweepSequential(Array[Float](0f, 1f, 8f, 9f), output, 0f, 1, 4)
     assert(output.toList == List(0f, 1f, 4f, 4f))
   }
+  
+  test("par lineOfSight") {
+    val src = Array[Float](0,1,2,2,3,2,1,4,5,3,7,8)
+    val input: Array[Float] = src.zipWithIndex.map(t => t._1 * t._2)
+    val output = new Array[Float](input.length)
+    val expected = Array[Float](0,1,2,2,3,3,3,4,5,5,7,8)
+    parLineOfSight(input, output, 3)
+  
+    println(input.toList)
+    println(output.toList)
+    println(expected.toList)
+    
+    assert(output.toList == expected.toList)
+  }
 
 }
 
