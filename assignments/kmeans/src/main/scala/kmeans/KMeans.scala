@@ -91,9 +91,11 @@ class KMeans {
 //      j += 1
 //    }
 //    newMeans
-    for {
-      oldMean <- oldMeans
-    } yield findAverage(oldMean, classified(oldMean))
+    
+//    for {
+//      oldMean <- oldMeans
+//    } yield findAverage(oldMean, classified(oldMean))
+    oldMeans.map(p => findAverage(p, classified(p)))
   }
   
   def converged(eta: Double)(oldMeans: GenSeq[Point], newMeans: GenSeq[Point]): Boolean = {
