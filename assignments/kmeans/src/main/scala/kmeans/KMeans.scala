@@ -61,7 +61,7 @@ class KMeans {
 
     if (!points.isEmpty) {
       val entries = for {
-        point <- points.toSeq
+        point <- points
         closest = findClosest(point, means)
       } yield (closest -> point)
       entries.groupBy(_._1).map(e => (e._1, e._2.map(_._2)))
