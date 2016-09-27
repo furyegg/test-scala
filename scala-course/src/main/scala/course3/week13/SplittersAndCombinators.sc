@@ -15,18 +15,3 @@ trait Iterator[A] {
     }
   }
 }
-
-trait Splitter[T] {
-  def split: Seq[Splitter[T]]
-  def remaining: Int
-  
-  val threshold = 10
-  
-  def fold(z: T)(f: (T, T) => T): T = {
-    if (remaining < threshold) foldLeft(z)(f)
-    else {
-      val children: Seq[Task[T]] = ???
-      children.map(_.join()).foldLeft(z)(f)
-    }
-  }
-}

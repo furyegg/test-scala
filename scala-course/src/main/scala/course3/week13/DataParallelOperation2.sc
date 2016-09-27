@@ -1,15 +1,15 @@
-val arr = Array(1,2,3,40,5)
+import scala.collection.mutable.ArrayBuffer
 
-def sum(xs: Array[Int]): Int = {
-  xs.par.fold(0)(_ + _)
-}
+var map = Map[String, ArrayBuffer[Int]]().withDefaultValue(ArrayBuffer())
 
-sum(arr)
+val arry = map("B") += 3
+map += ("B" -> arry)
+map
+map += ("B" -> (map("B") += 4))
+map
 
-def max(xs: Array[Int]): Int = {
-  // xs.par.max
-  xs.par.reduce((a, b) => if(a > b) a else b)
-//  xs.par.reduceLeft((a, b) => if(a > b) a else b)
-}
 
-max(arr)
+var arr = Array.fill(5)(0)
+arr.toList
+arr(0) = 11
+arr.toList

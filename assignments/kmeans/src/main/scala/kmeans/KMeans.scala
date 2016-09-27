@@ -6,6 +6,8 @@ import scala.util.Random
 import org.scalameter._
 import common._
 
+import scala.collection.mutable.ArrayBuffer
+
 class KMeans {
 
   def generatePoints(k: Int, num: Int): Seq[Point] = {
@@ -43,7 +45,21 @@ class KMeans {
   }
 
   def classify(points: GenSeq[Point], means: GenSeq[Point]): GenMap[Point, GenSeq[Point]] = {
-    ???
+    var map = immutable.Map[Point, ArrayBuffer[Point]]()
+    var j = 0
+    while(j < means.length) {
+      map += (means(j) -> ArrayBuffer())
+      j += 1
+    }
+    
+    var i = 0
+    while(i < points.length) {
+      val point = points(i)
+      val closest = findClosest(point, means)
+      map += (closest -> (map(closest) += point))
+      i += 1
+    }
+    map
   }
 
   def findAverage(oldMean: Point, points: GenSeq[Point]): Point = if (points.length == 0) oldMean else {
@@ -59,16 +75,30 @@ class KMeans {
   }
 
   def update(classified: GenMap[Point, GenSeq[Point]], oldMeans: GenSeq[Point]): GenSeq[Point] = {
-    ???
+    val newMeans = new Array[Point](oldMeans.length)
+    var j = 0
+    while(j < oldMeans.length) {
+      val oldMean = oldMeans(j)
+      newMeans(j) = findAverage(oldMean, classified(oldMean))
+      j += 1
+    }
+    newMeans
   }
-
+  
   def converged(eta: Double)(oldMeans: GenSeq[Point], newMeans: GenSeq[Point]): Boolean = {
-    ???
+//    oldMeans.zip(newMeans).toList match {
+//      case Nil => true
+//      case (oldMean, newMean) :: tail =>
+//        if (oldMean.squareDistance(newMean) < eta) false else converged(eta, tail.un)
+//    }
+    
   }
 
   @tailrec
   final def kMeans(points: GenSeq[Point], means: GenSeq[Point], eta: Double): GenSeq[Point] = {
-    if (???) kMeans(???, ???, ???) else ??? // your implementation need to be tail recursive
+    val classified = classify(points, means)
+    val newMeans = update(classified, means)
+    if (converged(eta)(means, newMeans)) kMeans(points, newMeans, eta) else means // your implementation need to be tail recursive
   }
 }
 
@@ -76,7 +106,7 @@ class KMeans {
  *
  *  Note: deliberately uses reference equality.
  */
-class Point(val x: Double, val y: Double, val z: Double) {
+case class Point(val x: Double, val y: Double, val z: Double) {
   private def square(v: Double): Double = v * v
   def squareDistance(that: Point): Double = {
     square(that.x - x)  + square(that.y - y) + square(that.z - z)
