@@ -2,11 +2,10 @@ package kmeans
 
 import scala.annotation.tailrec
 import scala.collection._
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 import org.scalameter._
 import common._
-
-import scala.collection.mutable.ArrayBuffer
 
 class KMeans {
 
@@ -45,21 +44,30 @@ class KMeans {
   }
 
   def classify(points: GenSeq[Point], means: GenSeq[Point]): GenMap[Point, GenSeq[Point]] = {
-    var map = immutable.Map[Point, ArrayBuffer[Point]]()
-    var j = 0
-    while(j < means.length) {
-      map += (means(j) -> ArrayBuffer())
-      j += 1
+//    var map = immutable.Map[Point, GenSeq[Point]]()
+//    var j = 0
+//    while(j < means.length) {
+//      map += (means(j) -> ArrayBuffer())
+//      j += 1
+//    }
+//    var i = 0
+//    while(i < points.length) {
+//      val point = points(i)
+//      val closest = findClosest(point, means)
+//      map += (closest -> (map(closest) :+ point))
+//      i += 1
+//    }
+//    map
+
+    if (!points.isEmpty) {
+      val entries = for {
+        point <- points.toSeq
+        closest = findClosest(point, means)
+      } yield (closest -> point)
+      entries.groupBy(_._1).map(e => (e._1, e._2.map(_._2)))
+    } else {
+      means.map((_ -> Nil)).toMap
     }
-    
-    var i = 0
-    while(i < points.length) {
-      val point = points(i)
-      val closest = findClosest(point, means)
-      map += (closest -> (map(closest) += point))
-      i += 1
-    }
-    map
   }
 
   def findAverage(oldMean: Point, points: GenSeq[Point]): Point = if (points.length == 0) oldMean else {
@@ -75,20 +83,23 @@ class KMeans {
   }
 
   def update(classified: GenMap[Point, GenSeq[Point]], oldMeans: GenSeq[Point]): GenSeq[Point] = {
-    val newMeans = new Array[Point](oldMeans.length)
-    var j = 0
-    while(j < oldMeans.length) {
-      val oldMean = oldMeans(j)
-      newMeans(j) = findAverage(oldMean, classified(oldMean))
-      j += 1
-    }
-    newMeans
+//    val newMeans = new Array[Point](oldMeans.length)
+//    var j = 0
+//    while(j < oldMeans.length) {
+//      val oldMean = oldMeans(j)
+//      newMeans(j) = findAverage(oldMean, classified(oldMean))
+//      j += 1
+//    }
+//    newMeans
+    for {
+      oldMean <- oldMeans
+    } yield findAverage(oldMean, classified(oldMean))
   }
   
   def converged(eta: Double)(oldMeans: GenSeq[Point], newMeans: GenSeq[Point]): Boolean = {
     var i = 0
     while(i < oldMeans.length) {
-      if (oldMeans(i).squareDistance(newMeans(i)) >= eta) return false
+      if (oldMeans(i).squareDistance(newMeans(i)) > eta) return false
       i += 1
     }
     true
