@@ -5,4 +5,13 @@ for {
 } yield i
 
 
-list.filter(list2(_))
+var i = 0
+def test(): Boolean = {
+  while (i < 10) {
+    if (i > 5) return false
+    println(i)
+    i += 1
+  }
+  true
+}
+test

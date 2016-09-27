@@ -86,12 +86,12 @@ class KMeans {
   }
   
   def converged(eta: Double)(oldMeans: GenSeq[Point], newMeans: GenSeq[Point]): Boolean = {
-//    oldMeans.zip(newMeans).toList match {
-//      case Nil => true
-//      case (oldMean, newMean) :: tail =>
-//        if (oldMean.squareDistance(newMean) < eta) false else converged(eta, tail.un)
-//    }
-    
+    var i = 0
+    while(i < oldMeans.length) {
+      if (oldMeans(i).squareDistance(newMeans(i)) >= eta) return false
+      i += 1
+    }
+    true
   }
 
   @tailrec
