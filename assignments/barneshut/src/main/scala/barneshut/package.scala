@@ -44,23 +44,23 @@ package object barneshut {
   }
 
   case class Empty(centerX: Float, centerY: Float, size: Float) extends Quad {
-    def massX: Float = ???
-    def massY: Float = ???
-    def mass: Float = ???
-    def total: Int = ???
-    def insert(b: Body): Quad = ???
+    def massX: Float = centerX
+    def massY: Float = centerY
+    def mass: Float = 0
+    def total: Int = 0
+    def insert(b: Body): Quad = new Leaf(centerX, centerY, size, Seq(b))
   }
 
   case class Fork(
     nw: Quad, ne: Quad, sw: Quad, se: Quad
   ) extends Quad {
-    val centerX: Float = ???
-    val centerY: Float = ???
-    val size: Float = ???
-    val mass: Float = ???
-    val massX: Float = ???
+    val centerX: Float = nw.centerX + nw.size / 2
+    val centerY: Float = nw.centerY + nw.size / 2
+    val size: Float = nw.size + ne.size + sw.size + se.size
+    val mass: Float = nw.mass + ne.mass + sw.mass + se.mass
+    val massX: Float = Seq(nw, ne, sw, se).map(q => q.mass * q.)
     val massY: Float = ???
-    val total: Int = ???
+    val total: Int = nw.total + ne.total + sw.total + se.total
 
     def insert(b: Body): Fork = {
       ???
@@ -68,10 +68,20 @@ package object barneshut {
   }
 
   case class Leaf(centerX: Float, centerY: Float, size: Float, bodies: Seq[Body])
-  extends Quad {
-    val (mass, massX, massY) = (??? : Float, ??? : Float, ??? : Float)
-    val total: Int = ???
-    def insert(b: Body): Quad = ???
+    extends Quad {
+    
+    val m = bodies.map(_.mass).sum
+    val mx = bodies.map(b => b.mass * b.x).sum / m
+    val my = bodies.map(b => b.mass * b.y).sum / m
+    
+    val (mass, massX, massY) = (m: Float, mx: Float, my: Float)
+    val total: Int = bodies.length
+    def insert(b: Body): Quad =
+      if (size <= minimumSize)
+        new Leaf(centerX, centerY, size, bodies :+ b)
+      else {
+        ???
+      }
   }
 
   def minimumSize = 0.00001f
@@ -165,7 +175,7 @@ package object barneshut {
           val sectorSize = boundaries.size / sectorPrecision
           val centerX = boundaries.minX + x * sectorSize + sectorSize / 2
           val centerY = boundaries.minY + y * sectorSize + sectorSize / 2
-          var emptyQuad: Quad = Empty(centerX, centerY, sectorSize)
+          val emptyQuad: Quad = Empty(centerX, centerY, sectorSize)
           val sectorBodies = this(x, y)
           sectorBodies.foldLeft(emptyQuad)(_ insert _)
         } else {
