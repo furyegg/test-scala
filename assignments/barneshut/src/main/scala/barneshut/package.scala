@@ -56,14 +56,21 @@ package object barneshut {
   ) extends Quad {
     val centerX: Float = nw.centerX + nw.size / 2
     val centerY: Float = nw.centerY + nw.size / 2
-    val size: Float = nw.size + ne.size + sw.size + se.size
+    val size: Float = nw.size + ne.size
     val mass: Float = nw.mass + ne.mass + sw.mass + se.mass
-    val massX: Float = Seq(nw, ne, sw, se).map(q => q.mass * q.)
-    val massY: Float = ???
+    val massX: Float = quads.map(q => q.massX * q.mass).sum / mass
+    val massY: Float = quads.map(q => q.massY * q.mass).sum / mass
     val total: Int = nw.total + ne.total + sw.total + se.total
+    val quads = Seq(nw, ne, sw, se)
 
     def insert(b: Body): Fork = {
-      ???
+      val position = getPosition(b, centerX, centerY)
+      position match {
+        case 1 => new Fork(nw.insert(b), ne, sw, se)
+        case 2 => new Fork(nw, ne.insert(b), sw, se)
+        case 3 => new Fork(nw, ne, sw.insert(b), se)
+        case 4 => new Fork(nw, ne, sw, se.insert(b))
+      }
     }
   }
 
@@ -76,12 +83,33 @@ package object barneshut {
     
     val (mass, massX, massY) = (m: Float, mx: Float, my: Float)
     val total: Int = bodies.length
+    
     def insert(b: Body): Quad =
       if (size <= minimumSize)
         new Leaf(centerX, centerY, size, bodies :+ b)
       else {
-        ???
+        val cellSize = size / 2
+        val radius = cellSize / 2
+        val nw = new Empty(centerX - radius, centerY - radius, cellSize)
+        val ne = new Empty(centerX + radius, centerY - radius, cellSize)
+        val sw = new Empty(centerX - radius, centerY + radius, cellSize)
+        val se = new Empty(centerX + radius, centerY + radius, cellSize)
+        val fork = new Fork(nw, ne, sw, se)
+        fork.insert(b)
+        fork
       }
+  }
+  
+  /**
+    * @param centerX The center X of cell
+    * @param centerY The center Y of cell
+    * @return nw: 1, ne: 2, sw: 3, se: 4
+    */
+  private def getPosition(b: Body, centerX: Float, centerY: Float): Int = {
+    if (b.x < centerX)
+      if (b.y < centerY) 1 else 3
+    else
+      if (b.y < centerY) 2 else 4
   }
 
   def minimumSize = 0.00001f
@@ -95,7 +123,7 @@ package object barneshut {
   def eliminationThreshold = 0.5f
 
   def force(m1: Float, m2: Float, dist: Float): Float = gee * m1 * m2 / (dist * dist)
-
+  
   def distance(x0: Float, y0: Float, x1: Float, y1: Float): Float = {
     math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0)).toFloat
   }
