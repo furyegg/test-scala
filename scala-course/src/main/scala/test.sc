@@ -1,3 +1,2 @@
-import scala.collection.GenSeq
-val points: GenSeq[Int] = IndexedSeq()
-points :+ 1
+var minX = Float.MaxValue
+minX == Float.MaxValue
