@@ -26,6 +26,7 @@ class ConcBuffer[@specialized(Byte, Char, Int, Long, Float, Double) T: ClassTag]
 
   final def +=(elem: T): this.type = {
     if (lastSize >= k) expand()
+    // println(s"lastSize: $lastSize")
     chunk(lastSize) = elem
     lastSize += 1
     this
