@@ -20,16 +20,10 @@ object ArthmetricExpression {
   object Mul extends BinOp((op1: Number, op2: Number) => op1 * op2)
   object Div extends BinOp((op1: Number, op2: Number) => op1 / op2)
   
-  implicit final class addNumber(private val self: Number) extends AnyVal {
+  implicit final class NumberCalc(private val self: Number) extends AnyVal {
     def +(other: Number): Number = Number(self.num + other.num)
-  }
-  implicit final class subNumber(private val self: Number) extends AnyVal {
     def -(other: Number): Number = Number(self.num - other.num)
-  }
-  implicit final class multiNumber(private val self: Number) extends AnyVal {
     def *(other: Number): Number = Number(self.num * other.num)
-  }
-  implicit final class divNumber(private val self: Number) extends AnyVal {
     def /(other: Number): Number = Number(self.num / other.num)
   }
   
