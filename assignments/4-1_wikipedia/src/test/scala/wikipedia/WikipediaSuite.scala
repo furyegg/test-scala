@@ -70,6 +70,7 @@ class WikipediaSuite extends FunSuite with BeforeAndAfterAll {
       )
     val rdd = sc.parallelize(articles)
     val index = makeIndex(langs, rdd)
+    println(index.collect().mkString(", "))
     val res = index.count() == 2
     assert(res)
   }
@@ -86,6 +87,7 @@ class WikipediaSuite extends FunSuite with BeforeAndAfterAll {
     val rdd = sc.parallelize(articles)
     val index = makeIndex(langs, rdd)
     val ranked = rankLangsUsingIndex(index)
+    println(ranked)
     val res = (ranked.head._1 == "Scala")
     assert(res)
   }
