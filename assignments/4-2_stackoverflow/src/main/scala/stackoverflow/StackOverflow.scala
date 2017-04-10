@@ -2,6 +2,7 @@ package stackoverflow
 
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd.RDD
+import org.apache.spark.storage.StorageLevel
 
 import scala.annotation.tailrec
 
@@ -22,8 +23,8 @@ object StackOverflow extends StackOverflow {
     val raw     = rawPostings(lines)
     val grouped = groupedPostings(raw)
     val scored  = scoredPostings(grouped)
-    val vectors = vectorPostings(scored)
-//    assert(vectors.count() == 2121822, "Incorrect number of vectors: " + vectors.count())
+    val vectors = vectorPostings(scored).persist(StorageLevel.MEMORY_ONLY_SER)
+    assert(vectors.count() == 2121822, "Incorrect number of vectors: " + vectors.count())
 
     val means   = kmeans(sampleVectors(vectors), vectors, debug = true)
     val results = clusterResults(means, vectors)
@@ -99,7 +100,11 @@ class StackOverflow extends Serializable {
       highScore
     }
 
-    ???
+    grouped.flatMap(_._2)
+        .groupByKey()
+        .map {
+          case (q, answers) => (q, answerHighScore(answers.toArray))
+        }
   }
 
 
@@ -119,7 +124,11 @@ class StackOverflow extends Serializable {
       }
     }
 
-    ???
+    scored.map {
+      case (p, s) => (s, firstLangInTag(p.tags, langs))
+    }.filter(_._2.isDefined).map {
+      case (s, Some(index)) => (s, index * langSpread)
+    }
   }
 
 
