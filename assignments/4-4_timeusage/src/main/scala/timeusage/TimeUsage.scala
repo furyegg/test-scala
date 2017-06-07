@@ -139,13 +139,43 @@ object TimeUsage {
     otherColumns: List[Column],
     df: DataFrame
   ): DataFrame = {
-    val workingStatusProjection: Column = ???
-    val sexProjection: Column = ???
-    val ageProjection: Column = ???
-
-    val primaryNeedsProjection: Column = ???
-    val workProjection: Column = ???
-    val otherProjection: Column = ???
+    
+    val workingStatusUDF = udf((value: Double) => {
+      val telfs = value.toInt
+      if (telfs >= 1 && telfs < 3) "working" else "not working"
+    }, StringType)
+  
+    val sexUDF = udf((value: Double) => {
+      val sex = value.toInt
+      if (sex == 1) "male" else "female"
+    }, StringType)
+  
+    val ageUDF = udf((value: Double) => {
+      val age = value.toInt
+      if (age >= 15 && age <= 22) "young"
+      else if (age >= 23 && age <= 55) "active"
+      else "elder"
+    }, StringType)
+  
+    val sumUDF = udf((r: Row) => {
+      val values = for {
+        i <- 0 until r.size
+      } yield r.getAs(i)
+      values.sum
+    }, DoubleType)
+  
+//    val primaryNeedsUDF = udf((r: Row) => sum(r, primaryNeedsColumns), DoubleType)
+//    val workingUDF = udf((r: Row) => sum(r, workColumns), DoubleType)
+//    val leisureUDF = udf((r: Row) => sum(r, otherColumns), DoubleType)
+  
+    val workingStatusProjection: Column = workingStatusUDF(df("telfs"))
+    val sexProjection: Column = sexUDF(df("tesex"))
+    val ageProjection: Column = ageUDF(df("teage"))
+    
+    val primaryNeedsProjection: Column = sumUDF(primaryNeedsColumns.toArray: _*)
+    val workProjection: Column = sumUDF(workColumns.toArray: _*)
+    val otherProjection: Column = sumUDF(otherColumns.toArray: _*)
+    
     df
       .select(workingStatusProjection, sexProjection, ageProjection, primaryNeedsProjection, workProjection, otherProjection)
       .where($"telfs" <= 4) // Discard people who are not in labor force
