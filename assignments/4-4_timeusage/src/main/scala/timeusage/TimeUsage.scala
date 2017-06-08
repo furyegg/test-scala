@@ -28,10 +28,13 @@ object TimeUsage {
 
   def timeUsageByLifePeriod(): Unit = {
     val (columns, initDf) = read("atussum.csv")
+    initDf.printSchema
+    initDf.show
     val (primaryNeedsColumns, workColumns, otherColumns) = classifiedColumns(columns)
     val summaryDf = timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
-    val finalDf = timeUsageGrouped(summaryDf)
-    finalDf.show()
+    summaryDf.show
+//    val finalDf = timeUsageGrouped(summaryDf)
+//    finalDf.show()
   }
 
   /** @return The read DataFrame along with its column names. */
@@ -48,24 +51,24 @@ object TimeUsage {
         .map(_.split(",").to[List])
         .map(row)
 
-    val dataFrame =
-      spark.createDataFrame(data, schema)
+    val dataFrame = spark.createDataFrame(data, schema)
 
     (headerColumns, dataFrame)
   }
 
   /** @return The filesystem path of the given resource */
   def fsPath(resource: String): String =
-    Paths.get(getClass.getResource(resource).toURI).toString
+    Paths.get(getClass.getClassLoader.getResource(resource).toURI).toString
 
   /** @return The schema of the DataFrame, assuming that the first given column has type String and all the others
     *         have type Double. None of the fields are nullable.
     * @param columnNames Column names of the DataFrame
     */
-  def dfSchema(columnNames: List[String]): StructType =
-    StructType(
-      StructField(columnNames.head, StringType, false) :: columnNames.tail.map(StructField(_, DoubleType, false))
-    )
+  def dfSchema(columnNames: List[String]): StructType = {
+    val fields = StructField(columnNames.head, StringType, false) :: columnNames.tail.map(StructField(_, DoubleType, false))
+//    StructType(fields)
+    DataTypes.createStructType(fields.toArray)
+  }
 
 
   /** @return An RDD Row compatible with the schema produced by `dfSchema`
@@ -91,7 +94,7 @@ object TimeUsage {
   def classifiedColumns(columnNames: List[String]): (List[Column], List[Column], List[Column]) = {
     def startWith(column: String, includes: List[String]): Boolean = includes match {
       case Nil => false
-      case x :: xs => if (column.startsWith(x)) true else startWith(column, xs.tail)
+      case x :: xs => if (column.startsWith(x)) true else startWith(column, xs)
     }
     
     val primary = columnNames.filter(startWith(_, List("t01", "t03", "t11", "t1801", "t1803"))).map(new Column(_))
@@ -160,21 +163,17 @@ object TimeUsage {
     val sumUDF = udf((r: Row) => {
       val values = for {
         i <- 0 until r.size
-      } yield r.getAs(i)
+      } yield r.getInt(i)
       values.sum
     }, DoubleType)
-  
-//    val primaryNeedsUDF = udf((r: Row) => sum(r, primaryNeedsColumns), DoubleType)
-//    val workingUDF = udf((r: Row) => sum(r, workColumns), DoubleType)
-//    val leisureUDF = udf((r: Row) => sum(r, otherColumns), DoubleType)
-  
+    
     val workingStatusProjection: Column = workingStatusUDF(df("telfs"))
     val sexProjection: Column = sexUDF(df("tesex"))
     val ageProjection: Column = ageUDF(df("teage"))
     
-    val primaryNeedsProjection: Column = sumUDF(primaryNeedsColumns.toArray: _*)
-    val workProjection: Column = sumUDF(workColumns.toArray: _*)
-    val otherProjection: Column = sumUDF(otherColumns.toArray: _*)
+    val primaryNeedsProjection: Column = sumUDF(struct(primaryNeedsColumns.toArray: _*))
+    val workProjection: Column = sumUDF(struct(workColumns.toArray: _*))
+    val otherProjection: Column = sumUDF(struct(otherColumns.toArray: _*))
     
     df
       .select(workingStatusProjection, sexProjection, ageProjection, primaryNeedsProjection, workProjection, otherProjection)
