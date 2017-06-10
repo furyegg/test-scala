@@ -28,13 +28,13 @@ object TimeUsage {
 
   def timeUsageByLifePeriod(): Unit = {
     val (columns, initDf) = read("atussum.csv")
-    initDf.printSchema
-    initDf.show
     val (primaryNeedsColumns, workColumns, otherColumns) = classifiedColumns(columns)
     val summaryDf = timeUsageSummary(primaryNeedsColumns, workColumns, otherColumns, initDf)
-    summaryDf.show
 //    val finalDf = timeUsageGrouped(summaryDf)
-//    finalDf.show()
+//    val finalDf = timeUsageGroupedSql(summaryDf)
+    val summaryDs = timeUsageSummaryTyped(summaryDf)
+    val finalDf = timeUsageGroupedTyped(summaryDs)
+    finalDf.show()
   }
 
   /** @return The read DataFrame along with its column names. */
@@ -74,7 +74,10 @@ object TimeUsage {
   /** @return An RDD Row compatible with the schema produced by `dfSchema`
     * @param line Raw fields
     */
-  def row(line: List[String]): Row = Row(line.head :: line.tail.map(_.toDouble))
+  def row(line: List[String]): Row = Row.merge(
+    Row(line.head),
+    Row(line.tail.map(_.toDouble).toArray: _*)
+  )
 
   /** @return The initial data frame columns partitioned in three groups: primary needs (sleeping, eating, etc.),
     *         work and other (leisure activities)
@@ -163,22 +166,24 @@ object TimeUsage {
     val sumUDF = udf((r: Row) => {
       val values = for {
         i <- 0 until r.size
-      } yield r.getInt(i)
+      } yield r.getDouble(i)
       values.sum
     }, DoubleType)
     
-    val workingStatusProjection: Column = workingStatusUDF(df("telfs"))
-    val sexProjection: Column = sexUDF(df("tesex"))
-    val ageProjection: Column = ageUDF(df("teage"))
+    val workingStatusProjection: Column = workingStatusUDF(df("telfs")).as("workingStatus")
+    val sexProjection: Column = sexUDF(df("tesex")).as("sex")
+    val ageProjection: Column = ageUDF(df("teage")).as("age")
     
-    val primaryNeedsProjection: Column = sumUDF(struct(primaryNeedsColumns.toArray: _*))
-    val workProjection: Column = sumUDF(struct(workColumns.toArray: _*))
-    val otherProjection: Column = sumUDF(struct(otherColumns.toArray: _*))
+    val primaryNeedsProjection: Column = sumUDF(struct(primaryNeedsColumns.toArray: _*)).as("primaryNeedsTime")
+    val workProjection: Column = sumUDF(struct(workColumns.toArray: _*)).as("workTime")
+    val otherProjection: Column = sumUDF(struct(otherColumns.toArray: _*)).as("otherTime")
     
     df
       .select(workingStatusProjection, sexProjection, ageProjection, primaryNeedsProjection, workProjection, otherProjection)
       .where($"telfs" <= 4) // Discard people who are not in labor force
   }
+  
+  val toHour = (mins: Double) => BigDecimal(mins / 60).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble
 
   /** @return the average daily time (in hours) spent in primary needs, working or leisure, grouped by the different
     *         ages of life (young, active or elder), sex and working status.
@@ -198,7 +203,18 @@ object TimeUsage {
     * Finally, the resulting DataFrame should be sorted by working status, sex and age.
     */
   def timeUsageGrouped(summed: DataFrame): DataFrame = {
-    ???
+    val grouped = summed.groupBy("workingStatus", "sex", "age")
+    val df = grouped.agg(
+      avg("primaryNeedsTime").as("primaryNeedsAvg"),
+      avg("workTime").as("workAvg"),
+      avg("otherTime").as("otherAvg"))
+  
+    val toHourUDF = udf(toHour, DoubleType);
+    val primaryNeedsAvg = toHourUDF(df("primaryNeedsAvg")).as("primaryNeedsAvg")
+    val workAvg = toHourUDF(df("workAvg")).as("workAvg")
+    val otherAvg = toHourUDF(df("otherAvg")).as("otherAvg")
+    df.select(df("workingStatus"), df("sex"), df("age"), primaryNeedsAvg, workAvg, otherAvg)
+      .orderBy("workingStatus", "sex", "age")
   }
 
   /**
@@ -208,6 +224,7 @@ object TimeUsage {
   def timeUsageGroupedSql(summed: DataFrame): DataFrame = {
     val viewName = s"summed"
     summed.createOrReplaceTempView(viewName)
+    spark.udf.register("toHour", toHour)
     spark.sql(timeUsageGroupedSqlQuery(viewName))
   }
 
@@ -215,7 +232,9 @@ object TimeUsage {
     * @param viewName Name of the SQL view to use
     */
   def timeUsageGroupedSqlQuery(viewName: String): String =
-    ???
+    "select workingStatus, sex, age, toHour(avg(primaryNeedsTime)) primaryNeedsAvg, toHour(avg(workTime)) workAvg, toHour(avg(otherTime)) otherAvg " +
+    "from summed group by workingStatus, sex, age " +
+    "order by workingStatus, sex, age"
 
   /**
     * @return A `Dataset[TimeUsageRow]` from the “untyped” `DataFrame`
@@ -225,7 +244,14 @@ object TimeUsage {
     * cast them at the same time.
     */
   def timeUsageSummaryTyped(timeUsageSummaryDf: DataFrame): Dataset[TimeUsageRow] =
-    ???
+    timeUsageSummaryDf.map(r => TimeUsageRow(
+      r.getAs("workingStatus"),
+      r.getAs("sex"),
+      r.getAs("age"),
+      r.getAs("primaryNeedsTime"),
+      r.getAs("workTime"),
+      r.getAs("otherTime")
+    ))
 
   /**
     * @return Same as `timeUsageGrouped`, but using the typed API when possible
@@ -240,7 +266,23 @@ object TimeUsage {
     */
   def timeUsageGroupedTyped(summed: Dataset[TimeUsageRow]): Dataset[TimeUsageRow] = {
     import org.apache.spark.sql.expressions.scalalang.typed
-    ???
+    val grouped = summed.groupByKey(r => (r.working, r.sex, r.age))
+    val ds = grouped.agg(
+      avg($"primaryNeeds").as[Double],
+      avg($"work").as[Double],
+      avg($"other").as[Double]
+    )
+  
+    ds.map {
+      case ((workingStatus, sex, age), primaryNeedsMin, workMin, otherMin) => TimeUsageRow(
+        workingStatus,
+        sex,
+        age,
+        toHour(primaryNeedsMin),
+        toHour(workMin),
+        toHour(otherMin)
+      )
+    }.orderBy("working", "sex", "age")
   }
 }
 
