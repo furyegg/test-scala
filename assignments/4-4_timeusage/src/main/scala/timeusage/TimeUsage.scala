@@ -4,6 +4,7 @@ import java.nio.file.Paths
 
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
+import org.apache.spark.storage.StorageLevel
 
 /** Main class */
 object TimeUsage {
@@ -103,7 +104,7 @@ object TimeUsage {
     val primary = columnNames.filter(startWith(_, List("t01", "t03", "t11", "t1801", "t1803"))).map(new Column(_))
     val working = columnNames.filter(startWith(_, List("t05", "t1805"))).map(new Column(_))
     val leisure = columnNames.filter(startWith(_, List("t02", "t04", "t06", "t07", "t08", "t09", "t10", "t12", "t13", "t14", "t15", "t16", "t18")))
-      .filter(!startWith(_, List("t1801", "t1803", "1805")))
+      .filter(!startWith(_, List("t1801", "t1803", "t1805")))
       .map(new Column(_))
     
     (primary, working, leisure)
@@ -157,7 +158,7 @@ object TimeUsage {
     }, StringType)
   
     val ageUDF = udf((value: Double) => {
-      val age = value.toInt
+      val age =  value.toInt
       if (age >= 15 && age <= 22) "young"
       else if (age >= 23 && age <= 55) "active"
       else "elder"
@@ -181,9 +182,10 @@ object TimeUsage {
     df
       .select(workingStatusProjection, sexProjection, ageProjection, primaryNeedsProjection, workProjection, otherProjection)
       .where($"telfs" <= 4) // Discard people who are not in labor force
+      .persist(StorageLevel.MEMORY_AND_DISK_SER)
   }
   
-  val toHour = (mins: Double) => BigDecimal(mins / 60).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble
+  private def toHour = (mins: Double) => BigDecimal(mins / 60).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble
 
   /** @return the average daily time (in hours) spent in primary needs, working or leisure, grouped by the different
     *         ages of life (young, active or elder), sex and working status.
@@ -208,7 +210,7 @@ object TimeUsage {
       avg("primaryNeedsTime").as("primaryNeedsAvg"),
       avg("workTime").as("workAvg"),
       avg("otherTime").as("otherAvg"))
-  
+    
     val toHourUDF = udf(toHour, DoubleType);
     val primaryNeedsAvg = toHourUDF(df("primaryNeedsAvg")).as("primaryNeedsAvg")
     val workAvg = toHourUDF(df("workAvg")).as("workAvg")
@@ -268,9 +270,9 @@ object TimeUsage {
     import org.apache.spark.sql.expressions.scalalang.typed
     val grouped = summed.groupByKey(r => (r.working, r.sex, r.age))
     val ds = grouped.agg(
-      avg($"primaryNeeds").as[Double],
-      avg($"work").as[Double],
-      avg($"other").as[Double]
+      typed.avg(_.primaryNeeds),
+      typed.avg[TimeUsageRow](_.work),
+      typed.avg[TimeUsageRow](_.other)
     )
   
     ds.map {

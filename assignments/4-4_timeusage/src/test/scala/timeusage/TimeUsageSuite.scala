@@ -25,4 +25,11 @@ class TimeUsageSuite extends FunSuite with BeforeAndAfterAll {
       val df = spark.createDataFrame(rowRDD, schema)
       df.show
     }
+  
+  test("classified columns") {
+    // t180501, t0201, t0601, t180201
+    val columns = List("t180501", "t0201", "t0601", "t180201", "t0901", "t180301")
+    val (primaryNeeds, work, other) = TimeUsage.classifiedColumns(columns)
+    println(other)
+  }
 }
