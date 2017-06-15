@@ -57,4 +57,3 @@ assignmentsMap := {
       options = Map("Xmx"->"1540m", "grader-memory"->"2048", "totalTimeout" -> "900", "grader-cpu" -> "2"))
   )
 }
-
