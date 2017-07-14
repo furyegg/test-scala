@@ -6,3 +6,5 @@ target
 .class
 *.jar
 *.war
+/assignments/4-2_stackoverflow/src/main/resources/stackoverflow.csv
+/assignments/4-4_timeusage/src/main/resources/atussum.csv
