@@ -13,11 +13,11 @@ import scala.util.Sorting
   */
 object Visualization {
   
-  private def distance(knowLoc: Location, location: Location): Double = {
+  def distance(knowLoc: Location, location: Location): Double = {
     acos(
-      sin(location.lon) * sin(knowLoc.lon) +
-      cos(location.lat) * cos(knowLoc.lat) * cos(abs(location.lat - knowLoc.lat))
-    ) * 6371000
+      sin(toRadians(location.lon)) * sin(toRadians(knowLoc.lon)) +
+      cos(toRadians(location.lat)) * cos(toRadians(knowLoc.lat)) * cos(toRadians(abs(location.lat - knowLoc.lat)))
+    ) * 6371
   }
   
   /**
@@ -28,16 +28,21 @@ object Visualization {
   def predictTemperature(temperatures: Iterable[(Location, Double)], location: Location): Double = {
     var totalTemp = 0.0
     var totalDist = 0.0
-    for ((knowLoc, knowTemp) <- temperatures) {
+    
+    val itr = temperatures.iterator
+    while (itr.hasNext) {
+      val (knowLoc, knowTemp) = itr.next()
       val dist = distance(knowLoc, location)
-      if (dist < 1000)
+      if (dist < 1) {
+        // println(s"two location less than 1KM: ${knowLoc}, ${location}")
         return knowTemp
-      else {
+      } else {
         val wix = 1 / pow(dist, 3)
         totalTemp += wix * knowTemp
         totalDist += wix
       }
     }
+    
     totalTemp / totalDist
   }
   
@@ -68,6 +73,7 @@ object Visualization {
       val newPoint = (value, Color(0, 0, 0))
       val newSortedPoints = points ++: Array(newPoint)
       Sorting.quickSort(newSortedPoints)(PointOrdering)
+      
       val newPointIndex = newSortedPoints.indexWhere(_._1 == newPoint._1)
       val previousPoint = newSortedPoints(newPointIndex - 1)
       val nextPoint = newSortedPoints(newPointIndex + 1)
@@ -75,19 +81,29 @@ object Visualization {
     }
   }
   
-  private def interpolateColor(previousPoint: (Double, Color), newPoint: (Double, Color), nextPoint: (Double, Color)): Color = {
-    val colorRadio = calcColorRadio(previousPoint._1, newPoint._1, nextPoint._1)
-    val r = calcRGB(previousPoint._2.red, nextPoint._2.red, colorRadio)
-    val g = calcRGB(previousPoint._2.green, nextPoint._2.green, colorRadio)
-    val b = calcRGB(previousPoint._2.blue, nextPoint._2.blue, colorRadio)
+  private def interpolateColor(
+      previousPoint: (Double, Color),
+      newPoint: (Double, Color),
+      nextPoint: (Double, Color)): Color = {
+    
+    val radio = calcColorRadio(previousPoint._1, newPoint._1, nextPoint._1)
+    val r = calcRGB(previousPoint._2.red, nextPoint._2.red, radio)
+    val g = calcRGB(previousPoint._2.green, nextPoint._2.green, radio)
+    val b = calcRGB(previousPoint._2.blue, nextPoint._2.blue, radio)
     Color(r, g, b)
   }
   
   private def calcColorRadio(temp1: Double, temp2: Double, temp3: Double): Double =
     (temp3 - temp1) / (temp2 - temp1)
   
-  private def calcRGB(c1: Int, c2: Int, colorRadio: Double): Int = {
-    val res = BigDecimal((c2.toDouble + c1.toDouble * colorRadio) / (colorRadio + 1))
+  private def calcRGB(c1: Int, c2: Int, radio: Double): Int = {
+    val diff = Math.abs(c2 - c1)
+    if (diff == 0) return c1
+    
+    val sign = if (c1 < c2) 1 else -1
+    val change = diff / radio * sign
+    
+    val res = BigDecimal(c1 + change)
     res.setScale(0, BigDecimal.RoundingMode.HALF_UP).toInt
   }
   
@@ -115,7 +131,7 @@ object Visualization {
         val color = colorMap.get(temp)
         require(color.isDefined, "Unable to find color by temperature: " + temp)
         val c = color.get
-        pixels(i) = Pixel(c.red, c.green, c.blue, 1)
+        pixels(i) = Pixel(c.red, c.green, c.blue, 255)
         i += 1
       }
     }
