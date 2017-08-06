@@ -13,6 +13,17 @@ import scala.util.Sorting
   */
 object Visualization {
   
+  val predefinedColors: Iterable[(Double, Color)] = List(
+    (60, Color(255, 255, 255)),
+    (32, Color(255, 0, 0)),
+    (12, Color(255, 255, 0)),
+    (0, Color(0, 255, 255)),
+    (-15, Color(0, 0, 255)),
+    (-27, Color(255, 0, 255)),
+    (-50, Color(33, 0, 107)),
+    (-60, Color(0, 0, 0))
+  )
+  
   /**
     * @param temperatures Known temperatures: pairs containing a location and the temperature at this location
     * @param location Location where to predict the temperature
@@ -127,26 +138,18 @@ object Visualization {
     * @return A 360×180 image where each pixel shows the predicted temperature at its location
     */
   def visualize(temperatures: Iterable[(Location, Double)], colors: Iterable[(Double, Color)]): Image = {
-//    val pixels: Array[Pixel] = new Array(360 * 180)
-//    val colorMap: Map[Double, Color] = colors.groupBy(_._1).mapValues(_.head._2)
-//    var i = 0
-//
-//    for (lat <- 90 to -89 by -1) {
-//      val points = temperatures.filter(p => p._1 == lat).toArray
-//      Sorting.quickSort(points)(LocationLonOrdering)
-//      require(points.length == 360)
-//
-//      for (lon <- 0 until 360) {
-//        val temp = points(lon)._2
-//        val color = colorMap.get(temp)
-//        require(color.isDefined, "Unable to find color by temperature: " + temp)
-//        val c = color.get
-//        pixels(i) = Pixel(c.red, c.green, c.blue, 255)
-//        i += 1
-//      }
-//    }
-//    Image(360, 180, pixels)
-    ???
+    val coordinates = for {
+      lon <- -180 to 179
+      lat <- 90 to -89 by -1
+    } yield (lat, lon)
+  
+    val pixels = coordinates.toParArray.map { case (lat, lon) => {
+      val temp = predictTemperature(temperatures, Location(lat, lon))
+      val color = interpolateColor(predefinedColors, temp)
+      Pixel(color.red, color.green, color.blue, 127)
+    }}.toArray
+    
+    Image(360, 180, pixels)
   }
   
 }

@@ -24,7 +24,7 @@ class InteractionTest extends FunSuite with Checkers {
     val year = 2021
     val yearlyTemperatures: Iterable[(LocalDate, Location, Double)] = Extraction.locateTemperatures(year, "stations3.csv", "2021.csv")
     val yearlyAverageRecords: Iterable[(Location, Double)] = Extraction.locationYearlyAverageRecords(yearlyTemperatures)
-    val yearlyData = List((year, (yearlyAverageRecords, Interaction.predefinedColors)))
+    val yearlyData = List((year, (yearlyAverageRecords, Visualization.predefinedColors)))
     Interaction.generateTiles(yearlyData, Interaction.generateImage)
   }
 }
