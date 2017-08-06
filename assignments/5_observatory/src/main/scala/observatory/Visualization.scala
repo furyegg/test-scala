@@ -13,37 +13,45 @@ import scala.util.Sorting
   */
 object Visualization {
   
-  def distance(knowLoc: Location, location: Location): Double = {
-    acos(
-      sin(toRadians(location.lon)) * sin(toRadians(knowLoc.lon)) +
-      cos(toRadians(location.lat)) * cos(toRadians(knowLoc.lat)) * cos(toRadians(abs(location.lat - knowLoc.lat)))
-    ) * 6371
-  }
-  
   /**
     * @param temperatures Known temperatures: pairs containing a location and the temperature at this location
     * @param location Location where to predict the temperature
     * @return The predicted temperature at `location`
     */
   def predictTemperature(temperatures: Iterable[(Location, Double)], location: Location): Double = {
-    var totalTemp = 0.0
-    var totalDist = 0.0
+//    var totalTemp = 0.0
+//    var totalDist = 0.0
+//
+//    val itr = temperatures.iterator
+//    while (itr.hasNext) {
+//      val (knowLoc, knowTemp) = itr.next()
+//      val dist = knowLoc.distanceTo(location)
+//      if (dist < 1000) {
+//        return knowTemp
+//      } else {
+//        val wix = 1 / pow(dist, 3)
+//        totalTemp += wix * knowTemp
+//        totalDist += wix
+//      }
+//    }
+//
+//    totalTemp / totalDist
     
-    val itr = temperatures.iterator
-    while (itr.hasNext) {
-      val (knowLoc, knowTemp) = itr.next()
-      val dist = distance(knowLoc, location)
-      if (dist < 1) {
-        // println(s"two location less than 1KM: ${knowLoc}, ${location}")
-        return knowTemp
-      } else {
-        val wix = 1 / pow(dist, 3)
-        totalTemp += wix * knowTemp
-        totalDist += wix
-      }
-    }
-    
-    totalTemp / totalDist
+    val sum = temperatures.aggregate((0.0, 0.0))(
+      {
+        case ((tempSum, distSum), (loc, temp)) => {
+          val dist = loc.distanceTo(location)
+          if (dist < 1000) {
+            (tempSum + temp, distSum)
+          } else {
+            val wix = 1 / pow(dist, 3)
+            (tempSum + wix * temp, distSum + wix)
+          }
+        }
+      },
+      (t1, t2) => (t1._1 + t2._1, t1._2 + t2._2)
+    )
+    sum._1 / sum._2
   }
   
   private object PointOrdering extends Ordering[(Double, Color)] {
@@ -56,6 +64,8 @@ object Visualization {
     * @return The color that corresponds to `value`, according to the color scale defined by `points`
     */
   def interpolateColor(points: Iterable[(Double, Color)], value: Double): Color = {
+    require(!value.isNaN, "invalid temperature: " + value)
+    
     // check range
     val sortedPoints = points.toArray
     Sorting.quickSort(sortedPoints)(PointOrdering)
@@ -117,25 +127,26 @@ object Visualization {
     * @return A 360×180 image where each pixel shows the predicted temperature at its location
     */
   def visualize(temperatures: Iterable[(Location, Double)], colors: Iterable[(Double, Color)]): Image = {
-    val pixels: Array[Pixel] = new Array(360 * 180)
-    val colorMap: Map[Double, Color] = colors.groupBy(_._1).mapValues(_.head._2)
-    var i = 0
-    
-    for (lat <- 90 to -89 by -1) {
-      val points = temperatures.filter(p => p._1 == lat).toArray
-      Sorting.quickSort(points)(LocationLonOrdering)
-      require(points.length == 360)
-      
-      for (lon <- 0 until 360) {
-        val temp = points(lon)._2
-        val color = colorMap.get(temp)
-        require(color.isDefined, "Unable to find color by temperature: " + temp)
-        val c = color.get
-        pixels(i) = Pixel(c.red, c.green, c.blue, 255)
-        i += 1
-      }
-    }
-    Image(360, 180, pixels)
+//    val pixels: Array[Pixel] = new Array(360 * 180)
+//    val colorMap: Map[Double, Color] = colors.groupBy(_._1).mapValues(_.head._2)
+//    var i = 0
+//
+//    for (lat <- 90 to -89 by -1) {
+//      val points = temperatures.filter(p => p._1 == lat).toArray
+//      Sorting.quickSort(points)(LocationLonOrdering)
+//      require(points.length == 360)
+//
+//      for (lon <- 0 until 360) {
+//        val temp = points(lon)._2
+//        val color = colorMap.get(temp)
+//        require(color.isDefined, "Unable to find color by temperature: " + temp)
+//        val c = color.get
+//        pixels(i) = Pixel(c.red, c.green, c.blue, 255)
+//        i += 1
+//      }
+//    }
+//    Image(360, 180, pixels)
+    ???
   }
   
 }

@@ -45,9 +45,9 @@ object Extraction {
     lines.map { l =>
       val stn = l(0)
       val wban = l(1)
-      val month = l(2)
-      val day = l(3)
-      val fah = l(4)
+      val month = l(2).trim
+      val day = l(3).trim
+      val fah = l(4).trim
       Temperature(stn, wban, month.toInt, day.toInt, fah.toDouble)
     }.filter(!_.invalid).toList
   }
@@ -64,7 +64,7 @@ object Extraction {
     val stationMap = stations.map(s => (s.id -> s)).toMap
     
     val temperatures = loadTemperatures(temperaturesFile)
-    temperatures.map(t => {
+    temperatures.par.map(t => {
       val station = stationMap.get(t.stationId)
       if (station.isEmpty)
         None
@@ -74,7 +74,7 @@ object Extraction {
         val loc = Location(s.latitude, s.longitude)
         Some((date, loc, t.celsius))
       }
-    }).filter(_.isDefined).map(_.get)
+    }).filter(_.isDefined).map(_.get).toList
   }
   
   /**
