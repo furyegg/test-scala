@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "co.fs2" %% "fs2-io" % "0.9.2",
   "org.scalacheck" %% "scalacheck" % "1.12.1" % Test,
   "junit" % "junit" % "4.10" % Test,
-  "commons-io" %% "commons-io" % "2.5"
+  "commons-io" % "commons-io" % "2.5"
 )
 
 courseId := "PCO2sYdDEeW0iQ6RUMSWEQ"
