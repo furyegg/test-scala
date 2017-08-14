@@ -34,12 +34,12 @@ object Interaction {
     val size = 256
     
     val coordinates = for {
-      lon <- 0 until size
-      lat <- 0 until size
+      lon <- y * size until (y + 1) * size
+      lat <- x * size until (x + 1) * size
     } yield (lat, lon)
   
-    val pixels = coordinates.toParArray.map(p => {
-      val loc = tileLocation(zoom + 8, p._1, p._2)
+    val pixels = coordinates.toParArray.map({ case (x, y) =>
+      val loc = tileLocation(zoom + 8, x, y)
       val temperature = Visualization.predictTemperature(temperatures, loc)
       val color = Visualization.interpolateColor(colors, temperature)
       Pixel(color.red, color.green, color.blue, 127)

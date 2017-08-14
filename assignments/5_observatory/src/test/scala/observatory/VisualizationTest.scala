@@ -18,7 +18,7 @@ class VisualizationTest extends FunSuite with Checkers {
     val knowLoc = Location(43.283, 20.8)
     val location = Location(90.0, -180.0)
     
-    val dist = knowLoc.distanceTo(location)
+    val dist = Visualization.distance(knowLoc, location)
     println(dist)
   }
   
