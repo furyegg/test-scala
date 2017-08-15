@@ -12,14 +12,14 @@ class ExtractionTest extends FunSuite {
     val avg = Extraction.locationYearlyAverageRecords(records)
     println(avg)
   }
-  
+
   test("extraction 2") {
     val records = Extraction.locateTemperatures(2001, "/stations2.csv", "/2001.csv")
     println(records)
     val avg = Extraction.locationYearlyAverageRecords(records)
     println(avg)
   }
-  
+
   test("extraction empty stations") {
     val records = Extraction.locateTemperatures(2001, "/empty-stations.csv", "/2001.csv")
     println(records)

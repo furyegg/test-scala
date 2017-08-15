@@ -23,7 +23,7 @@ object Extraction {
   }
   
   def loadCsv(file: String): ParSeq[Array[String]] = {
-    val in = getClass.getResourceAsStream("/" + file)
+    val in = getClass.getResourceAsStream(StringUtils.prependIfMissing(file, "/"))
     val source = Source.fromInputStream(in)
     val lines = source.getLines()
     lines.toSeq.toParArray.map(_.split(","))

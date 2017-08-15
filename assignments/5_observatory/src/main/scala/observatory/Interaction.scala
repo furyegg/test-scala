@@ -66,7 +66,7 @@ object Interaction {
     yearlyData: Iterable[(Int, Data)],
     generateImage: (Int, Int, Int, Int, Data) => Unit
   ): Unit = {
-    val zoomRange = 1
+    val zoomRange = 3
     for {
       (year, data) <- yearlyData
       zoom <- 0 to zoomRange
