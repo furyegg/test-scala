@@ -14,7 +14,7 @@ import scala.util.Sorting
   */
 object Visualization {
   
-  val predefinedColors: Iterable[(Double, Color)] = List(
+  val temperaturePredefinedColors: Iterable[(Double, Color)] = List(
     (60, Color(255, 255, 255)),
     (32, Color(255, 0, 0)),
     (12, Color(255, 255, 0)),
@@ -43,7 +43,6 @@ object Visualization {
   def predictTemperature(temperatures: Iterable[(Location, Double)], location: Location): Double = {
 //    var totalTemp = 0.0
 //    var totalDist = 0.0
-//
 //    val itr = temperatures.iterator
 //    while (itr.hasNext) {
 //      val (knowLoc, knowTemp) = itr.next()
@@ -56,7 +55,6 @@ object Visualization {
 //        totalDist += wix
 //      }
 //    }
-//
 //    totalTemp / totalDist
     
     val sum = temperatures.aggregate((0.0, 0.0))(
@@ -152,7 +150,7 @@ object Visualization {
   
     val pixels = coordinates.toParArray.map { case (lat, lon) => {
       val temp = predictTemperature(temperatures, Location(lat, lon))
-      val color = interpolateColor(predefinedColors, temp)
+      val color = interpolateColor(temperaturePredefinedColors, temp)
       Pixel(color.red, color.green, color.blue, 127)
     }}.toArray
     

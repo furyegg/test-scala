@@ -51,7 +51,7 @@ object Interaction {
   def generateImage(year: Int, zoom: Int, x: Int, y: Int, data: (Iterable[(Location, Double)], Iterable[(Double, Color)])): Unit = {
     def writeImage(image: Image, fileName: String): Unit = image.output(fileName)
     val image = tile(data._1, data._2, zoom, x, y)
-    OutputHelper.createImage(year, zoom, x, y, image, writeImage)
+    OutputHelper.createTemperatureImage(year, zoom, x, y, image, writeImage)
   }
   
   /**

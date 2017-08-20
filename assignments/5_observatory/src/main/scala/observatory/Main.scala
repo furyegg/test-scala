@@ -10,7 +10,7 @@ object Main extends App {
   val yearlyAverageRecords: Iterable[(Location, Double)] = Extraction.locationYearlyAverageRecords(yearlyTemperatures)
   
   // week3
-  val yearlyData = List((year, (yearlyAverageRecords, Visualization.predefinedColors)))
+  val yearlyData = List((year, (yearlyAverageRecords, Visualization.temperaturePredefinedColors)))
   Interaction.generateTiles(yearlyData, Interaction.generateImage)
   
 }

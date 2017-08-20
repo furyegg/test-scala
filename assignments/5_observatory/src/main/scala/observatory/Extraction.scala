@@ -86,8 +86,7 @@ object Extraction {
     require(Set(records.map(_._1.getYear)).size == 1, "unable to calculate average more than one year")
     records.groupBy(_._2).mapValues(rs => {
       val temperatures = rs.map(_._3)
-      val total = temperatures.foldLeft((0, 0.0))((acc, n) => (acc._1 + 1, acc._2 + n))
-      total._2 / total._1
+      Utils.avg(temperatures)
     }).toList
   }
   

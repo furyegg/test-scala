@@ -1,11 +1,24 @@
 package observatory
 
 import com.sksamuel.scrimage.{Image, Pixel}
+import observatory.Interaction.tileLocation
+import Utils._
 
 /**
   * 5th milestone: value-added information visualization
   */
 object Visualization2 {
+  
+  val size = 256
+  
+  val deviationPredefinedColors: Iterable[(Double, Color)] = List(
+    (7, Color(0, 0, 0)),
+    (4, Color(255, 0, 0)),
+    (2, Color(255, 255, 0)),
+    (0, Color(255, 255, 255)),
+    (-2, Color(0, 255, 255)),
+    (-7, Color(255, 0, 255))
+  )
 
   /**
     * @param x X coordinate between 0 and 1
@@ -25,7 +38,8 @@ object Visualization2 {
     d10: Double,
     d11: Double
   ): Double = {
-    ???
+    // d01 * (1 - x) * (1 - y) + d11 * x * (1 - y) + d00 * (1 - x) * y + d10 * x * y
+    d00 * (1 - x) * (1 - y) + d10 * x * (1 - y) + d01 * (1 - x) * y + d11 * x * y
   }
 
   /**
@@ -43,7 +57,30 @@ object Visualization2 {
     x: Int,
     y: Int
   ): Image = {
-    ???
+    val coordinates = for {
+      lon <- y * size until (y + 1) * size
+      lat <- x * size until (x + 1) * size
+    } yield (lat, lon)
+  
+    val pixels = coordinates.toParArray.map({ case (x1, y1) =>
+      val loc = tileLocation(zoom + 8, x, y)
+  
+      val (x0, y0) = (loc.lon.floor.toInt, loc.lat.ceil.toInt)
+      val (x1, y1) = (x0 + 1, y0 - 1)
+  
+      val temperature = bilinearInterpolation(
+        loc.lon - loc.lon.floor,
+        loc.lat.ceil - loc.lat,
+        grid(y0, x0),
+        grid(y1, x0),
+        grid(y0, x1),
+        grid(y1, x1))
+      
+      val color = Visualization.interpolateColor(colors, temperature)
+      Pixel(color.red, color.green, color.blue, 127)
+    }).toArray
+  
+    Image(size, size, pixels)
   }
 
 }

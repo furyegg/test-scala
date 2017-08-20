@@ -9,7 +9,11 @@ object Interaction2 {
     * @return The available layers of the application
     */
   def availableLayers: Seq[Layer] = {
-    ???
+    val yearRange = 2014 to 2015
+    Seq(
+      Layer(LayerName.Temperatures, Visualization.temperaturePredefinedColors.toSeq, yearRange),
+      Layer(LayerName.Deviations, Visualization2.deviationPredefinedColors.toSeq, yearRange)
+    )
   }
 
   /**
@@ -17,7 +21,7 @@ object Interaction2 {
     * @return A signal containing the year bounds corresponding to the selected layer
     */
   def yearBounds(selectedLayer: Signal[Layer]): Signal[Range] = {
-    ???
+    Signal(selectedLayer().bounds)
   }
 
   /**
@@ -29,7 +33,11 @@ object Interaction2 {
     *         in the `selectedLayer` bounds.
     */
   def yearSelection(selectedLayer: Signal[Layer], sliderValue: Signal[Int]): Signal[Int] = {
-    ???
+    val range = selectedLayer().bounds
+    val slider = sliderValue()
+    if (slider < range.start) Signal(range.start)
+    else if (slider > range.end) Signal(range.end)
+    else sliderValue
   }
 
   /**
@@ -38,7 +46,7 @@ object Interaction2 {
     * @return The URL pattern to retrieve tiles
     */
   def layerUrlPattern(selectedLayer: Signal[Layer], selectedYear: Signal[Int]): Signal[String] = {
-    ???
+    Signal(s"target/${selectedLayer().layerName.id}/${selectedLayer()}/{z}/{x}-{y}.png")
   }
 
   /**
@@ -47,7 +55,7 @@ object Interaction2 {
     * @return The caption to show
     */
   def caption(selectedLayer: Signal[Layer], selectedYear: Signal[Int]): Signal[String] = {
-    ???
+    Signal(s"${selectedLayer().layerName.id.capitalize}(${selectedYear()})")
   }
 
 }
