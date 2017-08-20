@@ -1,6 +1,6 @@
 package observatory
 
-import java.lang.Math._
+import scala.math._
 
 import com.sksamuel.scrimage.{Image, Pixel}
 
@@ -41,6 +41,39 @@ object Visualization {
     * @return The predicted temperature at `location`
     */
   def predictTemperature(temperatures: Iterable[(Location, Double)], location: Location): Double = {
+    val RADUIS_EARTH = 6371
+  
+    def isOpposite(l1: Location, l2: Location) = l1.lat == -l2.lat && abs(l1.lon - l2.lon) == 180.0
+  
+    def greatCircleDistance(l1: Location, l2: Location) = {
+      val lat1 = toRadians(l1.lat)
+      val lat2 = toRadians(l2.lat)
+      val lon1 = toRadians(l1.lon)
+      val lon2 = toRadians(l2.lon)
+      val deltaLon = abs(lon1 - lon2)
+      val centralAngle = {
+        if (l1 == l2) 0.0
+        else if (isOpposite(l1, l2)) Pi
+        else acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(deltaLon))
+      }
+      RADUIS_EARTH * centralAngle
+    }
+  
+    def inverseDistanceWeight: Double = {
+      val POWER_PARAM = 3.0
+      def w(distance: Double) = 1 / pow(distance, POWER_PARAM)
+    
+      temperatures.map(temp => temp._2 * w(greatCircleDistance(temp._1, location))).sum /
+        temperatures.map(temp => w(greatCircleDistance(temp._1, location))).sum
+    }
+    
+    temperatures.find(temp => greatCircleDistance(temp._1, location) < 1) match {
+      case Some(temp) => temp._2
+      case None => inverseDistanceWeight
+    }
+  }
+  
+  def predictTemperature2(temperatures: Iterable[(Location, Double)], location: Location): Double = {
 //    var totalTemp = 0.0
 //    var totalDist = 0.0
 //    val itr = temperatures.iterator
@@ -57,7 +90,7 @@ object Visualization {
 //    }
 //    totalTemp / totalDist
     
-    val sum = temperatures.aggregate((0.0, 0.0))(
+    val sum = temperatures.toParArray.aggregate((0.0, 0.0))(
       {
         case ((tempSum, distSum), (loc, temp)) => {
           val dist = distance(loc, location)
@@ -84,6 +117,22 @@ object Visualization {
     * @return The color that corresponds to `value`, according to the color scale defined by `points`
     */
   def interpolateColor(points: Iterable[(Double, Color)], value: Double): Color = {
+    val sortedPoints = points.toSeq.sortBy(_._1)
+    if (value <= sortedPoints.head._1) sortedPoints.head._2
+    else if (value >= sortedPoints.last._1) sortedPoints.last._2
+    else {
+      val index = sortedPoints.indexWhere(_._1 > value)
+      val (v1, c1) = sortedPoints(index - 1)
+      val (v2, c2) = sortedPoints(index)
+      val red = round(c1.red + (c2.red - c1.red) * (value - v1) / (v2 - v1)).toInt
+      val green = round(c1.green + (c2.green - c1.green) * (value - v1) / (v2 - v1)).toInt
+      val blue = round(c1.blue + (c2.blue - c1.blue) * (value - v1) / (v2 - v1)).toInt
+    
+      Color(red, green, blue)
+    }
+  }
+  
+  def interpolateColor2(points: Iterable[(Double, Color)], value: Double): Color = {
     require(!value.isNaN, "invalid temperature: " + value)
     
     // check range

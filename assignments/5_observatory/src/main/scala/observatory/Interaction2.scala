@@ -9,10 +9,9 @@ object Interaction2 {
     * @return The available layers of the application
     */
   def availableLayers: Seq[Layer] = {
-    val yearRange = 2014 to 2015
     Seq(
-      Layer(LayerName.Temperatures, Visualization.temperaturePredefinedColors.toSeq, yearRange),
-      Layer(LayerName.Deviations, Visualization2.deviationPredefinedColors.toSeq, yearRange)
+      Layer(LayerName.Temperatures, Visualization.temperaturePredefinedColors.toSeq, 1975 to 2015),
+      Layer(LayerName.Deviations, Visualization2.deviationPredefinedColors.toSeq, 1991 to 2015)
     )
   }
 
@@ -46,7 +45,7 @@ object Interaction2 {
     * @return The URL pattern to retrieve tiles
     */
   def layerUrlPattern(selectedLayer: Signal[Layer], selectedYear: Signal[Int]): Signal[String] = {
-    Signal(s"target/${selectedLayer().layerName.id}/${selectedLayer()}/{z}/{x}-{y}.png")
+    Signal(s"target/${selectedLayer().layerName.id}/${yearSelection(selectedLayer, selectedYear)()}/{z}/{x}-{y}.png")
   }
 
   /**
@@ -55,7 +54,7 @@ object Interaction2 {
     * @return The caption to show
     */
   def caption(selectedLayer: Signal[Layer], selectedYear: Signal[Int]): Signal[String] = {
-    Signal(s"${selectedLayer().layerName.id.capitalize}(${selectedYear()})")
+    Signal(s"${selectedLayer().layerName.id.capitalize} (${yearSelection(selectedLayer, selectedYear)()})")
   }
 
 }

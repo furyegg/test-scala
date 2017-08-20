@@ -62,8 +62,8 @@ object Visualization2 {
       lat <- x * size until (x + 1) * size
     } yield (lat, lon)
   
-    val pixels = coordinates.toParArray.map({ case (x1, y1) =>
-      val loc = tileLocation(zoom + 8, x, y)
+    val pixels = coordinates.toParArray.map({ case (latX, lonY) =>
+      val loc = tileLocation(zoom + 8, latX, lonY)
   
       val (x0, y0) = (loc.lon.floor.toInt, loc.lat.ceil.toInt)
       val (x1, y1) = (x0 + 1, y0 - 1)
