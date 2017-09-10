@@ -36,7 +36,10 @@ object MyModule {
 
   // Exercise 1: Write a function to compute the nth fibonacci number
 
-  def fib(n: Int): Int = ???
+  def fib(n: Int): Int =
+    if (n == 0) 0
+    else if (n == 1) 1
+    else fib(n - 2) + fib(n - 1)
 
   // This definition and `formatAbs` are very similar..
   private def formatFactorial(n: Int) = {
@@ -119,6 +122,14 @@ object MonomorphicBinarySearch {
 }
 
 object PolymorphicFunctions {
+  
+  def main(args: Array[String]): Unit = {
+    val as1 = Array(1,2,3,4,5)
+    val as2 = Array(1,2,6,4,5)
+    val gt: (Int, Int) => Boolean = (a1, a2) => a1 > a2
+    println(isSorted(as1, gt))
+    println(isSorted(as2, gt))
+  }
 
   // Here's a polymorphic version of `binarySearch`, parameterized on
   // a function for testing whether an `A` is greater than another `A`.
@@ -140,7 +151,14 @@ object PolymorphicFunctions {
 
   // Exercise 2: Implement a polymorphic function to check whether
   // an `Array[A]` is sorted
-  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = ???
+  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = {
+    def compare(a: A, as: Array[A]): Boolean =
+    if (as.isEmpty) true
+    else if (gt(a, as.head)) false
+    else compare(as.head, as.tail)
+    
+    compare(as.head, as.tail)
+  }
 
   // Polymorphic functions are often so constrained by their type
   // that they only have one implementation! Here's an example:
@@ -153,13 +171,13 @@ object PolymorphicFunctions {
   // Note that `=>` associates to the right, so we could
   // write the return type as `A => B => C`
   def curry[A,B,C](f: (A, B) => C): A => (B => C) =
-    ???
+    a => b => f(a,b)
 
   // NB: The `Function2` trait has a `curried` method already
 
   // Exercise 4: Implement `uncurry`
   def uncurry[A,B,C](f: A => B => C): (A, B) => C =
-    ???
+    (a, b) => f(a)(b)
 
   /*
   NB: There is a method on the `Function` object in the standard library,
@@ -174,5 +192,5 @@ object PolymorphicFunctions {
   // Exercise 5: Implement `compose`
 
   def compose[A,B,C](f: B => C, g: A => B): A => C =
-    ???
+    a => f(g(a))
 }
