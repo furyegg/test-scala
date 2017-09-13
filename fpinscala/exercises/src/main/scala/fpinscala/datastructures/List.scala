@@ -14,6 +14,7 @@ object List { // `List` companion object. Contains functions for creating and wo
   def main(args: Array[String]): Unit = {
     val l = Cons(1, Cons(2, Cons(3, Cons(4, Nil))))
     println(init(l))
+    println(length(l))
   }
   
   def sum(ints: List[Int]): Int = ints match { // A function that uses pattern matching to add up a list of integers
@@ -86,7 +87,7 @@ object List { // `List` companion object. Contains functions for creating and wo
     case Cons(h, t) => Cons(h, init(t))
   }
 
-  def length[A](l: List[A]): Int = ???
+  def length[A](l: List[A]): Int = foldRight(l, 0)((a, len) => len + 1)
 
   def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
 
