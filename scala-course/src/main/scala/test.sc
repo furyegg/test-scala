@@ -1,6 +1,2 @@
-import scala.collection.immutable.TreeSet
-
-val l1 = List(1,2)
-val l2 = List(2,1)
-
-val set = Set(l1, l2)
+val l = List(1,2,3,4,5)
+l.drop(1)
