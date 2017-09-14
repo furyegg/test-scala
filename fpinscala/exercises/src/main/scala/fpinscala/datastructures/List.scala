@@ -14,10 +14,20 @@ object List { // `List` companion object. Contains functions for creating and wo
   def main(args: Array[String]): Unit = {
     val l = Cons(1, Cons(2, Cons(3, Cons(4, Nil))))
     val l2 = Cons(5, Cons(6, Cons(7, Cons(8, Nil))))
+  
     println(init(l))
     println(length(l))
     println(reverse(l))
     println(concatenate(List(l, l2)))
+  
+    val sub1 = Cons(1, Cons(2, Cons(3, Nil)))
+    val sub2 = Cons(2, Cons(3, Nil))
+    val sub3 = Cons(4, Nil)
+    val sub4 = Cons(2, Cons(4, Nil))
+    println(hasSubsequence(l, sub1))
+    println(hasSubsequence(l, sub2))
+    println(hasSubsequence(l, sub3))
+    println(hasSubsequence(l, sub4))
   }
   
   def sum(ints: List[Int]): Int = ints match { // A function that uses pattern matching to add up a list of integers
@@ -143,10 +153,24 @@ object List { // `List` companion object. Contains functions for creating and wo
   // exercise 22
   def addEach(l1: List[Int], l2: List[Int]): List[Int] = ???
   
-  def hasSubsequence[A](l: List[A], sub: List[A]): Boolean =
-    sub match {
-      case Nil => true
-      case
+  def hasSubsequence[A](l: List[A], sub: List[A]): Boolean = {
+    def findSubStart(l: List[A], subHead: A): List[A] = l match {
+      case Nil => Nil
+      case Cons(h, t) =>
+        if (h == subHead) t
+        else findSubStart(t, subHead)
     }
+    
+    def hasSub(xs: List[A], subs: List[A]): Boolean = (xs, subs) match {
+      case (_, Nil) => true
+      case (Cons(h, t), Cons(sh, st)) =>
+        if (h == sh) hasSub(t, st)
+        else false
+    }
+    
+    val Cons(subHead, subTail) = sub
+    val subStartInList = findSubStart(l, subHead)
+    hasSub(subStartInList, subTail)
+  }
   
 }
