@@ -1,2 +1,5 @@
-val l = List(1,2,3,4,5)
-l.drop(1)
+val l = List(1,2)
+l.scanLeft()
+l.foldLeft()
+l.fold()
+l.reduce()

@@ -13,8 +13,11 @@ object List { // `List` companion object. Contains functions for creating and wo
   
   def main(args: Array[String]): Unit = {
     val l = Cons(1, Cons(2, Cons(3, Cons(4, Nil))))
+    val l2 = Cons(5, Cons(6, Cons(7, Cons(8, Nil))))
     println(init(l))
     println(length(l))
+    println(reverse(l))
+    println(concatenate(List(l, l2)))
   }
   
   def sum(ints: List[Int]): Int = ints match { // A function that uses pattern matching to add up a list of integers
@@ -54,10 +57,15 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   def sum2(ns: List[Int]) =
     foldRight(ns, 0)((x,y) => x + y)
+  
+  def sum3(ns: List[Int]) =
+    foldLeft(ns, 0)(_ + _)
 
   def product2(ns: List[Double]) =
     foldRight(ns, 1.0)(_ * _) // `_ * _` is more concise notation for `(x,y) => x * y`; see sidebar
-
+  
+  def product3(ns: List[Double]) =
+    foldLeft(ns, 1.0)(_ * _)
 
   def tail[A](l: List[A]): List[A] = l match {
     case Nil => Nil
@@ -87,9 +95,58 @@ object List { // `List` companion object. Contains functions for creating and wo
     case Cons(h, t) => Cons(h, init(t))
   }
 
-  def length[A](l: List[A]): Int = foldRight(l, 0)((a, len) => len + 1)
+  def length[A](l: List[A]): Int = foldRight(l, 0)((_, len) => len + 1)
+  def length2[A](l: List[A]): Int = foldLeft(l, 0)((len, _) => len + 1)
 
-  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
-
-  def map[A,B](l: List[A])(f: A => B): List[B] = ???
+  @tailrec
+  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
+    case Nil => z
+    case Cons(h, t) => foldLeft(t, f(z, h))(f)
+  }
+  
+  // very hard !!!
+  def foldLeftViaFoldRight[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
+  def foldRightViaFoldLeft[A,B](l: List[A], z: B)(f: (A, B) => B): B = ???
+  // very hard !!!
+  
+  def reverse[A](l: List[A]): List[A] = foldLeft(l, List[A]())((xs, a) => Cons(a, xs))
+  
+  def appendViaFoldRight[A](l: List[A], r: List[A]): List[A] =
+    foldRight(l, r)(Cons(_, _))
+  
+  def concatenate[A](ll: List[List[A]]): List[A] =
+    foldLeft(ll, List[A]())(append)
+  
+  def add1ToEach(l: List[Int]): List[Int] = l match {
+    case Nil => Nil
+    case Cons(h, t) => Cons(h + 1, add1ToEach(t))
+  }
+  
+  def map[A,B](l: List[A])(f: A => B): List[B] = l match {
+    case Nil => Nil
+    case Cons(h, t) => Cons(f(h), map(t)(f))
+  }
+  
+  def filter[A](l: List[A])(f: A => Boolean): List[A] = l match {
+    case Nil => Nil
+    case Cons(h, t) =>
+      if (f(h)) Cons(h, filter(t)(f))
+      else filter(t)(f)
+  }
+  
+  def flatMap[A,B](l: List[A])(f: A => List[B]): List[B] =
+    concatenate(map(l)(f))
+  
+  def filterViaFlatMap[A](l: List[A])(f: A => Boolean): List[A] =
+    flatMap(l)(a => if (f(a)) List(a) else Nil)
+  
+  // exercise 22
+  def addEach(l1: List[Int], l2: List[Int]): List[Int] = ???
+  
+  def hasSubsequence[A](l: List[A], sub: List[A]): Boolean =
+    sub match {
+      case Nil => true
+      case
+    }
+  
 }
