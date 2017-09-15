@@ -21,5 +21,15 @@ object Tree {
     case Leaf(_) => 1
     case Branch(l, r) => (depth(l) + 1) max (depth(r) + 1)
   }
+  
+  def map[A, B](t: Tree[A])(f: A => B): Tree[B] = t match {
+    case Leaf(v) => Leaf(f(v))
+    case Branch(l, r) => Branch(map(l)(f), map(r)(f))
+  }
+  
+  def fold[A,B](t: Tree[A])(l: A => B)(b: (B,B) => B): B = t match {
+    case Leaf(v) => l(v)
+    case Branch(lt, rt) => b(fold(lt)(l)(b), fold(rt)(l)(b))
+  }
 
 }
