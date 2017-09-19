@@ -1,5 +1,2 @@
-val l = List(1,2)
-l.scanLeft()
-l.foldLeft()
-l.fold()
-l.reduce()
+val l = List(1,-2,3)
+l.takeWhile(_ > 0)
