@@ -1,2 +1,4 @@
-val l = List(1,-2,3)
-l.takeWhile(_ > 0)
+val l1 = List(1)
+val l2 = List("a","b","c")
+
+l1 zipAll (l2, 100, "z")
