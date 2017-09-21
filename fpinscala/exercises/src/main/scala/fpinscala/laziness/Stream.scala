@@ -3,7 +3,6 @@ package fpinscala.laziness
 import Stream._
 
 trait Stream[+A] {
-
   def foldRight[B](z: => B)(f: (A, => B) => B): B = // The arrow `=>` in front of the argument type `B` means that the function `f` takes its second argument by name and may choose not to evaluate it.
     this match {
       case Cons(h,t) => f(h(), t().foldRight(z)(f)) // If `f` doesn't evaluate its second argument, the recursion never occurs.
@@ -84,7 +83,24 @@ trait Stream[+A] {
   // 5.7 map, filter, append, flatmap using foldRight. Part of the exercise is
   // writing your own function signatures.
 
-  def startsWith[B](s: Stream[B]): Boolean = ???
+  // ---------- not work! why ?! ------------
+  def startsWith[A](s: Stream[A]): Boolean = (this, s) match {
+    case (_, Empty) => true
+    case (Cons(h1, t1), Cons(h2, t2)) if h1 == h2 => t1() startsWith t2()
+    case _ => false
+  }
+  
+  // ---------- not work! why ?! ------------
+  def startsWith2[A](s: Stream[A]): Boolean =
+    zipAll(s).takeWhile(!_._2.isEmpty) forAll {
+      case (h,h2) => h == h2
+    }
+  
+  def tails: Stream[Stream[A]] =
+    unfold(this)({
+      case Cons(h, t) => Some((cons(h(), t()), t()))
+      case Empty => None
+    }) append Stream(empty)
   
   def toList: List[A] = this match {
     case Empty => Nil
@@ -98,12 +114,25 @@ trait Stream[+A] {
     })
   
   def zip[B](s2: Stream[B]): Stream[(A,B)] =
-    zipWith(s2)((a, b) => (a, b))
+    zipWith(s2)((_, _))
   
-  def zipWithAll[B, C](s2: Stream[B])(f: (Option[A], Option[B]) => C): Stream[C] = ???
+  def zipWithAll[B, C](s2: Stream[B])(f: (Option[A], Option[B]) => C): Stream[C] =
+    unfold((this, s2))({
+      case (Cons(h1, t1), Empty) => Some((f(Some(h1()), None), (t1(), empty)))
+      case (Empty, Cons(h2, t2)) => Some((f(None, Some(h2())), (empty, t2())))
+      case (Cons(h1, t1), Cons(h2, t2)) => Some((f(Some(h1()), Some(h2())), (t1(), t2())))
+      case _ => None
+    })
   
-  def zipAll[B](s2: Stream[B]): Stream[(Option[A],Option[B])] = ???
+  def zipAll[B](s2: Stream[B]): Stream[(Option[A],Option[B])] =
+    zipWithAll(s2)((_, _))
   
+  // exercise 16
+  def scanRight[B](z: B)(f: (A, => B) => B): Stream[B] =
+    unfold(this)({
+      case s@Cons(_, t) => Some((s.foldRight(z)(f), t()))
+      case Empty => None
+    }) append(Stream(z))
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
@@ -126,6 +155,18 @@ object Stream {
     println(ones.forAll(_ != 1))
     
     println(ones.zip(alphas).takeViaUnfold(5).toList)
+    println(s.zipAll(alphas).takeViaUnfold(10).toList)
+    
+    val s2 = Stream(1,2,3)
+    val s3 = Stream(1)
+    println(s startsWith s2) // not work!
+    println(s startsWith s3)
+    println(s startsWith2 s2) // not work!
+    println(s startsWith2 s3)
+    
+    println(s2.tails.take(6).toList.map(_.toList))
+  
+    println(Stream(1,2,3).scanRight(0)(_ + _).toList)
   }
   
   def cons[A](hd: => A, tl: => Stream[A]): Stream[A] = {
