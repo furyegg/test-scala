@@ -27,7 +27,11 @@ object Par {
   
   def fork[A](a: => Par[A]): Par[A] = // This is the simplest and most natural implementation of `fork`, but there are some problems with it--for one, the outer `Callable` will block waiting for the "inner" task to complete. Since this blocking occupies a thread in our thread pool, or whatever resource backs the `ExecutorService`, this implies that we're losing out on some potential parallelism. Essentially, we're using two threads when one should suffice. This is a symptom of a more serious problem with the implementation, and we will discuss this later in the chapter.
     es => es.submit(new Callable[A] {
-      def call = a(es).get
+      def call = {
+        val res = a(es).get
+        println("fork and get result: " + res)
+        res
+      }
     })
 
   def map[A,B](pa: Par[A])(f: A => B): Par[B] = 
@@ -96,8 +100,13 @@ object Examples {
     if (as.isEmpty) unit(0)
     else {
       val (l,r) = as.splitAt(as.length/2)
+      println(s"l: ${a2s(l)}, r: ${a2s(r)}")
       map2(fork(sum2(l)), fork(sum2(r)))(_ + _)
     }
+  
+  def a2s[T]: IndexedSeq[T] => String = arr =>
+    if (arr.isEmpty) "Empty"
+    else arr.foldLeft("")((s, a) => s + "," + a)
   
   def main(args: Array[String]): Unit = {
     val es = new ForkJoinPool()
@@ -108,7 +117,7 @@ object Examples {
     println(c(es).get)
     
     val l = Array(1,2,3,4,5,6,7,8,9,10)
-//    val res = sum2(l)(es).get
-//    println(res)
+    val res = sum2(l)(es).get
+    println(res)
   }
 }
