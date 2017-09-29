@@ -9,6 +9,7 @@ object Par {
   def run[A](s: ExecutorService)(a: Par[A]): Future[A] = a(s)
 
   def unit[A](a: A): Par[A] = (es: ExecutorService) => UnitFuture(a) // `unit` is represented as a function that returns a `UnitFuture`, which is a simple implementation of `Future` that just wraps a constant value. It doesn't use the `ExecutorService` at all. It's always done and can't be cancelled. Its `get` method simply returns the value that we gave it.
+  def lazyUnit[A](a: => A): Par[A] = (es: ExecutorService) => UnitFuture(a)
   
   private case class UnitFuture[A](get: A) extends Future[A] {
     def isDone = true 
@@ -25,7 +26,7 @@ object Par {
     }
   
   def fork[A](a: => Par[A]): Par[A] = // This is the simplest and most natural implementation of `fork`, but there are some problems with it--for one, the outer `Callable` will block waiting for the "inner" task to complete. Since this blocking occupies a thread in our thread pool, or whatever resource backs the `ExecutorService`, this implies that we're losing out on some potential parallelism. Essentially, we're using two threads when one should suffice. This is a symptom of a more serious problem with the implementation, and we will discuss this later in the chapter.
-    es => es.submit(new Callable[A] { 
+    es => es.submit(new Callable[A] {
       def call = a(es).get
     })
 
@@ -47,9 +48,36 @@ object Par {
 
   /* Gives us infix syntax for `Par`. */
   implicit def toParOps[A](p: Par[A]): ParOps[A] = new ParOps(p)
+  
+  def asyncF[A,B](f: A => B): A => Par[B] = a => lazyUnit(f(a))
+  
+  def product[A,B](fa: Par[A], fb: Par[B]): Par[(A,B)] = (es: ExecutorService) => {
+    val af = fa(es)
+    val bf = fb(es)
+    UnitFuture((af.get, bf.get))
+  }
+  
+  def mapViaPrimitive[A,B](fa: Par[A])(f: A => B): Par[B] = (es: ExecutorService) =>
+    UnitFuture(f(fa(es).get))
+  
+  def map2ViaCombinator[A,B,C](a: Par[A], b: Par[B])(f: (A,B) => C): Par[C] =
+    map(product(a, b))(t => f(t._1, t._2))
+  
+  def parMap[A,B](l: List[A])(f: A => B): Par[List[B]] =
+    (es: ExecutorService) => l.foldLeft(UnitFuture(List[B]()))((l, a) => UnitFuture(f(a) :: l.get))
+  
+  def parMap2[A,B](l: List[A])(f: A => B): Par[List[B]] =
+    l.foldLeft(lazyUnit(List[B]()))((l, a) => map2(lazyUnit(f(a)), l)(_ :: _))
+  
+  def sequence[A](l: List[Par[A]]): Par[List[A]] =
+    l.foldLeft(lazyUnit(List[A]()))((l, p) => map2(p, l)(_ :: _))
+  
+  def parMap3[A,B](l: List[A])(f: A => B): Par[List[B]] = fork {
+    val fbs: List[Par[B]] = l.map(asyncF(f))
+    sequence(fbs)
+  }
 
   class ParOps[A](p: Par[A]) {
-
 
   }
 }
@@ -63,5 +91,24 @@ object Examples {
       val (l,r) = ints.splitAt(ints.length/2) // Divide the sequence in half using the `splitAt` function.
       sum(l) + sum(r) // Recursively sum both halves and add the results together.
     }
-
+  
+  def sum2(as: IndexedSeq[Int]): Par[Int] =
+    if (as.isEmpty) unit(0)
+    else {
+      val (l,r) = as.splitAt(as.length/2)
+      map2(fork(sum2(l)), fork(sum2(r)))(_ + _)
+    }
+  
+  def main(args: Array[String]): Unit = {
+    val es = new ForkJoinPool()
+  
+    val a = 100
+    val b = 200
+    val c = map2(fork(unit(a)), fork(unit(b)))(_ + _)
+    println(c(es).get)
+    
+    val l = Array(1,2,3,4,5,6,7,8,9,10)
+//    val res = sum2(l)(es).get
+//    println(res)
+  }
 }
