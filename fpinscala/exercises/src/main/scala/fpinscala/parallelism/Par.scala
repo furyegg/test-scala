@@ -28,9 +28,7 @@ object Par {
   def fork[A](a: => Par[A]): Par[A] = // This is the simplest and most natural implementation of `fork`, but there are some problems with it--for one, the outer `Callable` will block waiting for the "inner" task to complete. Since this blocking occupies a thread in our thread pool, or whatever resource backs the `ExecutorService`, this implies that we're losing out on some potential parallelism. Essentially, we're using two threads when one should suffice. This is a symptom of a more serious problem with the implementation, and we will discuss this later in the chapter.
     es => es.submit(new Callable[A] {
       def call = {
-        val res = a(es).get
-        println("fork and get result: " + res)
-        res
+        a(es).get
       }
     })
 
@@ -67,8 +65,8 @@ object Par {
   def map2ViaCombinator[A,B,C](a: Par[A], b: Par[B])(f: (A,B) => C): Par[C] =
     map(product(a, b))(t => f(t._1, t._2))
   
-  def parMap[A,B](l: List[A])(f: A => B): Par[List[B]] =
-    (es: ExecutorService) => l.foldLeft(UnitFuture(List[B]()))((l, a) => UnitFuture(f(a) :: l.get))
+  def parMap[A,B](l: List[A])(f: A => B): Par[List[B]] = (es: ExecutorService) =>
+    l.foldLeft(UnitFuture(List[B]()))((l, a) => UnitFuture(f(a) :: l.get))
   
   def parMap2[A,B](l: List[A])(f: A => B): Par[List[B]] =
     l.foldLeft(lazyUnit(List[B]()))((l, a) => map2(lazyUnit(f(a)), l)(_ :: _))
@@ -80,6 +78,9 @@ object Par {
     val fbs: List[Par[B]] = l.map(asyncF(f))
     sequence(fbs)
   }
+  
+  def parFilter[A](l: List[A])(f: A => Boolean): Par[List[A]] =
+    l.foldLeft(lazyUnit(List[A]()))((l, a) => if (f(a)) map2(lazyUnit(a), l)(_ :: _) else l)
 
   class ParOps[A](p: Par[A]) {
 
@@ -97,10 +98,9 @@ object Examples {
     }
   
   def sum2(as: IndexedSeq[Int]): Par[Int] =
-    if (as.isEmpty) unit(0)
+    if (as.size <= 1) unit(as.headOption getOrElse 0)
     else {
       val (l,r) = as.splitAt(as.length/2)
-      println(s"l: ${a2s(l)}, r: ${a2s(r)}")
       map2(fork(sum2(l)), fork(sum2(r)))(_ + _)
     }
   
@@ -110,14 +110,14 @@ object Examples {
   
   def main(args: Array[String]): Unit = {
     val es = new ForkJoinPool()
-  
-    val a = 100
-    val b = 200
-    val c = map2(fork(unit(a)), fork(unit(b)))(_ + _)
-    println(c(es).get)
     
-    val l = Array(1,2,3,4,5,6,7,8,9,10)
-    val res = sum2(l)(es).get
+    val arr = Array(1,2,3,4,5,6,7,8,9,10)
+    val res = sum2(arr)(es).get
     println(res)
+  
+    val a = unit(42 + 1)
+    val S = Executors.newFixedThreadPool(1)
+    println(fork(a)(S).get)
+    println(Par.equal(S)(a, fork(a)))
   }
 }
