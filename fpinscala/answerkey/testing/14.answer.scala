@@ -1,5 +1,5 @@
-val sortedProp = forAll(listOf(smallInt)) { ns =>
-  val nss = ns.sorted
+val sortedProp = forAll(listOfval nss = ns.sorted(smallInt)) { ns =>
+  
   // We specify that every sorted list is either empty, has one element,
   // or has no two consecutive elements `(a,b)` such that `a` is greater than `b`.
   (nss.isEmpty || nss.tail.isEmpty || !nss.zip(nss.tail).exists {

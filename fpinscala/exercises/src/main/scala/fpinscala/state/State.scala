@@ -86,6 +86,9 @@ object RNG {
   
   def positiveMax(n: Int): Rand[Int] =
     map(r => r.nextInt)(x => math.abs(x % (n + 1)))
+  
+  def positiveMaxExclusive(n: Int): Rand[Int] =
+    map(r => r.nextInt)(x => math.abs(x % n))
 
   def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = r => {
     val (a, r2) = ra(r)
