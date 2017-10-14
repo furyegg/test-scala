@@ -123,8 +123,8 @@ object Gen {
   def listOfN[A](n: Int, g: Gen[A]): Gen[List[A]] =
     Gen(State.sequence(List.fill(n)(g.sample)))
   
-  def union[A](g1: Gen[A], g2: Gen[A]): Gen[A] =
-    boolean.flatMap(b => if (b) g1 else g2)
+  def union[A](g1: Gen[A], g2: Gen[A]): Gen[A] = ???
+    // boolean.flatMap(b => if (b) g1 else g2)
   
   // exercise 8
   def weighted[A](g1: (Gen[A], Double), g2: (Gen[A], Double)): Gen[A] =
@@ -133,15 +133,15 @@ object Gen {
 }
 
 case class Gen[A](sample: State[RNG,A]) {
-  def map[A, B](f: A => B): Gen[B] =
-    Gen(sample.map(f))
+  def map[A, B](f: A => B): Gen[B] = ???
+//    Gen(sample.map(f))
   
-  def flatMap[A,B](f: A => Gen[B]): Gen[B] =
-    Gen(sample.flatMap(a => f(a).sample))
+  def flatMap[A,B](f: A => Gen[B]): Gen[B] = ???
+//    Gen(sample.flatMap(a => f(a).sample))
   
   /* A method alias for the function we wrote earlier. */
-  def listOfN(size: Int): Gen[List[A]] =
-    Gen.listOfN(size, this)
+  def listOfN(size: Int): Gen[List[A]] = ???
+//    Gen.listOfN(size, this)
   
   // compile error, why?
   def listOfN(size: Gen[Int]): Gen[List[A]] = ???
@@ -157,19 +157,20 @@ case class SGen[A](g: Int => Gen[A]) {
   def map[B](f: A => B): SGen[B] =
     SGen { g(_) map f }
   
-  def flatMap[B](f: A => SGen[B]): SGen[B] = {
-    val g2: Int => Gen[B] = n => {
-      g(n) flatMap { f(_).g(n) }
-    }
-    SGen(g2)
-  }
+  def flatMap[B](f: A => SGen[B]): SGen[B] = ???
+//  {
+//    val g2: Int => Gen[B] = n => {
+//      g(n) flatMap { f(_).g(n) }
+//    }
+//    SGen(g2)
+//  }
   
-  def **[B](s2: SGen[B]): SGen[(A,B)] =
-    SGen(n => {
-      val ga = apply(n)
-      val gb = s2.g(n)
-      ga.flatMap(a => gb.map(b => (a, b)))
-    })
+  def **[B](s2: SGen[B]): SGen[(A,B)] = ???
+//    SGen(n => {
+//      val ga = apply(n)
+//      val gb = s2.g(n)
+//      ga.flatMap(a => gb.map(b => (a, b)))
+//    })
   
 }
 
