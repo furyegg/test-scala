@@ -1,1 +1,1 @@
-type IN = Int
+"#akka".replaceAll("[^#\\w]", "")
